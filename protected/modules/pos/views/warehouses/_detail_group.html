@@ -1,0 +1,48 @@
+<table class="table table-hover">
+    <tbody>
+    <tr>
+        <td>Id</td>
+        <td>#{{ model.id }}</td>
+    </tr>
+    <tr>
+        <td>Nama Grup Warehouse</td>
+        <td>{{ model.title }}</td>
+    </tr>
+    <tr>
+        <td>Catatan</td>
+        <td>{{ model.notes | default('-') }}</td>
+    </tr>
+    <tr>
+        <td>Coverage PIC</td>
+        <td>
+            {% if detail.pic %}
+                {% set pics = detail.pic | json_decode %}
+                {% set idx = 0 %}
+                {% for pid, pic in pics %}
+                    {% if idx > 0 %}, {% endif %}
+                    <a href="{{ 'pos/users/update' | link }}/{{ pid }}" target="_blank">{{ pic.name }}</a>
+                  {% set idx = idx + 1 %}
+                {% endfor %}
+            {% else %}
+            -
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>Tanggal Input</td>
+        <td>{{ model.created_at }}</td>
+    </tr>
+    <tr>
+        <td>Diinput Oleh</td>
+        <td>{{ detail.created_by_name | default('-') }}</td>
+    </tr>
+    <tr>
+        <td>Tanggal Perubahan Terakhir</td>
+        <td>{{ model.updated_at }}</td>
+    </tr>
+    <tr>
+        <td>Diubah Oleh</td>
+        <td>{{ detail.updated_by_name | default('-') }}</td>
+    </tr>
+    </tbody>
+</table>

@@ -1,0 +1,142 @@
+<form method="post" id="product-prices-form" class="mt20" action="{{ 'pos/products/create-price' | link }}/{{ model.id }}">
+    <div class="alert alert-success" style="display: none;"></div>
+    {% for i, price in prices %}
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="qty">Jumlah <span class="required">*</span></label>
+                    <div class="input-group">
+                        <input type="text" id="qty" name="ProductPrices[quantity][]" class="form-control" value="{{ price.quantity }}" required>
+                        <span class="input-group-addon" id="unit">{% if price.unit %}{{ price.unit }}{% else %}unit{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="price">Harga per item<span class="required">*</span></label>
+                    <input type="text" id="price" name="ProductPrices[price][]" class="form-control" value="{{ price.price }}" required>
+                </div>
+            </div>
+            <div class="col-md-1">
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <a href="javascript:void(0);" onclick="removeprice(this, true);" attr-id="{{ price.id }}" title="Hapus price ini">
+                        <i class="fa fa-trash-o fa-2x"></i>
+                    </a>
+                    {% if i + 1 == prices | length %}
+                    <a href="javascript:void(0);" onclick="addItem(this, false);"><i class="fa fa-plus fa-2x"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            <input type="hidden" name="ProductPrices[id][]" value="{{ price.id }}">
+        </div>
+    </div>
+    {% endfor %}
+    <div class="col-md-12" id="price-form">
+        {% if prices | length <= 0 %}
+        {% include 'products/_price_form.html' with {'model':model} %}
+        {% endif %}
+    </div>
+    <div class="col-md-12">
+        <div class="form-group">
+            <input name="ProductPrices[product_id]" type="hidden" value="{{ model.id }}">
+            <input type="submit" value="Simpan" class="btn btn-info">
+        </div>
+    </div>
+</form>
+
+<style>
+    .row + .row {margin-top: 0px;}
+</style>
+<script type="text/javascript">
+    function removeprice(dt, execute = false) {
+        if ($(dt).parent().find('.fa-plus').parent().is(':visible')) {
+            alert('price ini tidak dapat dihapus!.');
+        } else {
+            if (confirm('Anda yakin ingin menghapus price ini?')) {
+                if (execute) {
+                    $.ajax({
+                        'url': '{{ "pos/products/delete-price" | link }}/'+$(dt).attr('attr-id'),
+                        'type':'post',
+                        'data':{'id':$(dt).attr('attr-id')},
+                        'success': function(data) {
+                            //console.log(data);
+                            if (data.status == 'success') {
+                                $(dt).parent().parent().parent().remove();
+                            }
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            console.log("Status: " + textStatus + " Message: "+errorThrown);
+                        }
+                    });
+                } else {
+                    $(dt).parent().parent().parent().remove();
+                }
+            }
+        }
+        return false;
+    }
+    function addItem(dt, hide = true) {
+        $.ajax({
+            'url': '{{ "pos/products/create-price" | link }}/{{ model.id }}',
+            'type':'get',
+            'success': function(data) {
+                console.log(data);
+                $('#price-form').append(data);
+                $(dt).hide();
+                if (hide) {
+                    $(dt).parent().find('.fa-trash-o').parent().show();
+                }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                console.log("Status: " + textStatus + " Message: "+errorThrown);
+            }
+        });
+    }
+    function updateUnit(dt) {
+        var url = $(this).attr('action');
+        $.ajax({
+            'url': '{{ "pos/products/info" | link }}',
+            'type':'post',
+            'data': {'id':$(dt).val()},
+            'success': function(data) {
+                console.log(data);
+                if (data.status == 'success') {
+                    $(dt).parent().parent().parent().find('span[id="unit"]').html(data.result.unit);
+                    $(dt).parent().parent().parent().find('input[id="qty"]').focus();
+                }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                console.log("Status: " + textStatus + " Message: "+errorThrown);
+            }
+        });
+        return false;
+    }
+    $(function () {
+        $('#product-prices-form').submit(function () {
+            var url = $(this).attr('action');
+            $.ajax({
+                'url': url,
+                'type':'post',
+                'data': $('#product-prices-form').serialize(),
+                'success': function(data) {
+                    console.log(data);
+                    if (data.status == 'success') {
+                        var alert_success = $('#product-prices-form').find('.alert-success');
+                        alert_success.html(data.message);
+                        alert_success.show();
+                        setTimeout(function () {
+                            window.location.reload(true);
+                        }, 5000);
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    console.log("Status: " + textStatus + " Message: "+errorThrown);
+                }
+            });
+
+            return false;
+        });
+    });
+</script>
