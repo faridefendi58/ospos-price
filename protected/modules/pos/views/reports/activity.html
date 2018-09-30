@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block pagetitle %}
-Aktifitas Per Warehouse - {{ App.params.site_name }}
+Aktifitas Per Outlet - {{ App.params.site_name }}
 {% endblock %}
 
 {% block content %}
@@ -10,19 +10,19 @@ Aktifitas Per Warehouse - {{ App.params.site_name }}
         <div class="row">
             <div class="col-sm-6">
                 <h1 class="page_title">
-                    {% if not warehouse %}
-                    Aktifitas Per Warehouse
+                    {% if not outlet %}
+                    Aktifitas Per Outlet
                     {% else %}
-                    Aktifitas di Warehouse {{ warehouse.title }}
+                    Aktifitas di Outlet {{ outlet.title }}
                     {% endif %}
                 </h1>
-                <p class="text-muted">Catatan aktifitas di warehouse {{ warehouse.title }}</p>
+                <p class="text-muted">Catatan aktifitas di outlet {{ outlet.title }}</p>
             </div>
             <div class="col-sm-3">
-                <select id="warehouse_from" name="Reports[warehouse_id]" class="form-control select2" onchange="selectWH(this)">
-                    <option value="0">- Pilih Warehouse -</option>
-                    {% for i, wh in warehouses %}
-                    <option value="{{ wh.id }}" {% if warehouse and warehouse.id == wh.id %}selected="selected"{% endif %}>{{ wh.title }}</option>
+                <select id="outlet_from" name="Reports[outlet_id]" class="form-control select2" onchange="selectWH(this)">
+                    <option value="0">- Pilih Outlet -</option>
+                    {% for i, wh in outlets %}
+                    <option value="{{ wh.id }}" {% if outlet and outlet.id == wh.id %}selected="selected"{% endif %}>{{ wh.title }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -89,15 +89,15 @@ Aktifitas Per Warehouse - {{ App.params.site_name }}
             <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
-                        <div class="panel-heading">Perpindahan Barang Dari atau Ke Warehouse {{ warehouse.title }}</div>
+                        <div class="panel-heading">Perpindahan Barang Dari atau Ke Outlet {{ outlet.title }}</div>
                         <div class="panel-body">
                             <div id="dt_basic_wrapper" class="dataTables_wrapper form-inline no-footer table-responsive mt20" role="grid">
                                 <table id="dt_basic" class="table table-striped dataTable" attr-sort="3" attr-sort-type="desc">
                                     <thead>
                                     <tr>
                                         <th>Kode</th>
-                                        <th>Warehouse Asal</th>
-                                        <th>Warehouse Penerima</th>
+                                        <th>Outlet Asal</th>
+                                        <th>Outlet Penerima</th>
                                         <th>Tanggal Penerimaan</th>
                                         <th>Status</th>
                                         <th>Diterima Oleh</th>
@@ -112,8 +112,8 @@ Aktifitas Per Warehouse - {{ App.params.site_name }}
                                                 {{ transfer.tr_number }}
                                             </a>
                                         </td>
-                                        <td><span {% if transfer.warehouse_from == warehouse.id %}class="text-success" style="text-decoration: underline;font-weight: bold;" {% endif %}>{{ transfer.warehouse_from_name }}</span></td>
-                                        <td><span {% if transfer.warehouse_id == warehouse.id %}class="text-success" style="text-decoration: underline;font-weight: bold;"{% endif %}>{{ transfer.warehouse_to_name }}</span></td>
+                                        <td><span {% if transfer.outlet_from == outlet.id %}class="text-success" style="text-decoration: underline;font-weight: bold;" {% endif %}>{{ transfer.outlet_from_name }}</span></td>
+                                        <td><span {% if transfer.outlet_id == outlet.id %}class="text-success" style="text-decoration: underline;font-weight: bold;"{% endif %}>{{ transfer.outlet_to_name }}</span></td>
                                         <td>{{ transfer.completed_at }}</td>
                                         <td>{{ transfer.status }}</td>
                                         <td>{{ transfer.completed_by_name | default('-') }}</td>
@@ -139,15 +139,15 @@ Aktifitas Per Warehouse - {{ App.params.site_name }}
             <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
-                        <div class="panel-heading">Issue Perpindahan Barang Dari Warehouse {{ warehouse.title }}</div>
+                        <div class="panel-heading">Issue Perpindahan Barang Dari Outlet {{ outlet.title }}</div>
                         <div class="panel-body">
                             <div id="dt_basic_wrapper" class="dataTables_wrapper form-inline no-footer table-responsive mt20" role="grid">
                                 <table id="dt_basic" class="table table-striped dataTable" attr-sort="3" attr-sort-type="desc">
                                     <thead>
                                     <tr>
                                         <th>Kode</th>
-                                        <th>Warehouse Asal</th>
-                                        <th>Warehouse Tujuan</th>
+                                        <th>Outlet Asal</th>
+                                        <th>Outlet Tujuan</th>
                                         <th>Tanggal Transaksi</th>
                                         <th>Status</th>
                                         <th>&nbsp;</th>
@@ -161,8 +161,8 @@ Aktifitas Per Warehouse - {{ App.params.site_name }}
                                                 {{ transfer_issue.ti_number }}
                                             </a>
                                         </td>
-                                        <td><span {% if transfer_issue.warehouse_from == warehouse.id %}class="text-success" style="text-decoration: underline;font-weight: bold;" {% endif %}>{{ transfer_issue.warehouse_from_name }}</span></td>
-                                        <td><span {% if transfer_issue.warehouse_to == warehouse.id %}class="text-success" style="text-decoration: underline;font-weight: bold;"{% endif %}>{{ transfer_issue.warehouse_to_name | default('-') }}</span></td>
+                                        <td><span {% if transfer_issue.outlet_from == outlet.id %}class="text-success" style="text-decoration: underline;font-weight: bold;" {% endif %}>{{ transfer_issue.outlet_from_name }}</span></td>
+                                        <td><span {% if transfer_issue.outlet_to == outlet.id %}class="text-success" style="text-decoration: underline;font-weight: bold;"{% endif %}>{{ transfer_issue.outlet_to_name | default('-') }}</span></td>
                                         <td>{{ transfer_issue.date_transfer }}</td>
                                         <td>{{ transfer_issue.status }}</td>
                                         <td>
@@ -187,7 +187,7 @@ Aktifitas Per Warehouse - {{ App.params.site_name }}
             <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
-                        <div class="panel-heading">Transaksi Non Penjualan Dari Warehouse {{ warehouse.title }}</div>
+                        <div class="panel-heading">Transaksi Non Penjualan Dari Outlet {{ outlet.title }}</div>
                         <div class="panel-body">
                             <div id="dt_basic_wrapper" class="dataTables_wrapper form-inline no-footer table-responsive mt20" role="grid">
                                 <table id="dt_basic" class="table table-striped dataTable" attr-sort="1" attr-sort-type="desc">

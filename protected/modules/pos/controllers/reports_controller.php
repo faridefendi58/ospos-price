@@ -46,12 +46,12 @@ class ReportsController extends BaseController
             return $this->notAllowedAction();
         }
         
-        $model = new \Model\WarehousesModel();
-        $warehouses = $model->getData();
+        $model = new \Model\OutletsModel();
+        $outlets = $model->getData();
 
         $stocks = []; $purchases = []; $params = []; $transfers = [];
         if (isset($_GET['wh'])) {
-            $warehouse = $model->model()->findByPk($_GET['wh']);
+            $outlet = $model->model()->findByPk($_GET['wh']);
             $psmodel = new \Model\ProductStocksModel();
 
             if (isset($_GET['start'])) {
@@ -67,7 +67,7 @@ class ReportsController extends BaseController
             }
 
             $params = [
-                'warehouse_id' => $warehouse->id,
+                'outlet_id' => $outlet->id,
                 'date_start' => $date_start,
                 'date_end' => $date_end
             ];
@@ -79,8 +79,8 @@ class ReportsController extends BaseController
             $response, 
             'reports/stock.html',
             [
-                'warehouses' => $warehouses,
-                'warehouse' => isset($_GET['wh'])? $warehouse : false,
+                'outlets' => $outlets,
+                'outlet' => isset($_GET['wh'])? $outlet : false,
                 'stocks' => $stocks,
             ]
         );
@@ -96,12 +96,12 @@ class ReportsController extends BaseController
             return $this->notAllowedAction();
         }
 
-        $model = new \Model\WarehousesModel();
-        $warehouses = $model->getData();
+        $model = new \Model\OutletsModel();
+        $outlets = $model->getData();
 
         $stocks = []; $purchases = []; $params = []; $transfers = [];
         if (isset($_GET['wh'])) {
-            $warehouse = $model->model()->findByPk($_GET['wh']);
+            $outlet = $model->model()->findByPk($_GET['wh']);
             $psmodel = new \Model\ProductStocksModel();
 
             if (isset($_GET['start'])) {
@@ -117,7 +117,7 @@ class ReportsController extends BaseController
             }
 
             $params = [
-                'warehouse_id' => $warehouse->id,
+                'outlet_id' => $outlet->id,
                 'date_start' => $date_start,
                 'date_end' => $date_end
             ];
@@ -131,7 +131,7 @@ class ReportsController extends BaseController
             $transfers = $trmodel->getQuery($params3);
 
             $timodel = new \Model\TransferIssuesModel();
-            $params4 = array_merge($params, ['warehouse_from' => $warehouse->id]);
+            $params4 = array_merge($params, ['outlet_from' => $outlet->id]);
             $transfer_issues = $timodel->getData($params4);
 
             $iimodel = new \Model\InventoryIssuesModel();
@@ -142,8 +142,8 @@ class ReportsController extends BaseController
             $response,
             'reports/activity.html',
             [
-                'warehouses' => $warehouses,
-                'warehouse' => isset($_GET['wh'])? $warehouse : false,
+                'outlets' => $outlets,
+                'outlet' => isset($_GET['wh'])? $outlet : false,
                 'purchases' => $purchases,
                 'params' => $params,
                 'transfers' => $transfers,

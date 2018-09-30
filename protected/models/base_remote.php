@@ -3,7 +3,7 @@ namespace Model;
 
 require_once __DIR__ . '/../components/rb.php';
 
-class BaseModel extends \RedBeanPHP\SimpleModel
+class BaseRemoteModel extends \RedBeanPHP\SimpleModel
 {
     protected $connectionString;
     protected $username;
@@ -15,46 +15,27 @@ class BaseModel extends \RedBeanPHP\SimpleModel
     protected $_errors;
     protected $_scenario;
     protected $_tbl_prefix;
+    protected $dbKey;
+    protected $tablePk;
 
     private static $_models = array(); // class name => model
-    
-    public function __construct($configs = null)
+
+    public function setup($dbKey = null)
     {
-        if (!is_array($configs)) {
-            if (!empty($configs))
-                $this->_scenario = $configs;
+        R::addDatabase( $dbKey, $this->connectionString, $this->username, $this->password, $this->frozen );
+        R::selectDatabase( $dbKey );
 
-            $configs = require __DIR__ . '/../configs/main.php';
-        }
-
-        $this->connectionString = $configs['settings']['db']['connectionString'];
-        $this->username = $configs['settings']['db']['username'];
-        $this->password = $configs['settings']['db']['password'];
-        $this->tableName = $configs['settings']['db']['tablePrefix'].$this->tableName();
-        $this->_tbl_prefix = $configs['settings']['db']['tablePrefix'];
-
-        if (!$this->is_connected) {
-            $this->setup();
-        }
-    }
-    
-    public function setup()
-    {
-        if (!R::testConnection())
-            R::setup($this->connectionString, $this->username, $this->password, $this->frozen);
-
-        R::selectDatabase( 'default' );
         $this->is_connected = true;
         return true;
     }
 
-    public static function model($className=__CLASS__)
+    public static function model($outlet_id = 1, $table_name = 'items', $table_pk = 'id', $className=__CLASS__)
     {
         if(isset(self::$_models[$className]))
             return self::$_models[$className];
         else
         {
-            $model = self::$_models[$className] = new $className(null);
+            $model = self::$_models[$className] = new $className($outlet_id, $table_name, $table_pk);
             return $model;
         }
     }
@@ -82,24 +63,27 @@ class BaseModel extends \RedBeanPHP\SimpleModel
 
     public function findAllByAttributes($params)
     {
+        $sql = 'SELECT * FROM '.$this->tableName.' WHERE 1';
         $field = array();
         foreach ($params as $attr => $val){
             $field[] = $attr. '= :'. $attr;
         }
 
-        $sql = implode(" AND ", $field);
+        $where = implode(" AND ", $field);
+        $sql .= ' AND '. $where;
 
-        return R::find($this->tableName, $sql, $params);
+        return R::getAll($sql, $params);
     }
 
     public function findAll()
     {
-        return R::find($this->tableName);
+        $sql = 'SELECT * FROM '.$this->tableName.' WHERE 1';
+        return R::getAll( $sql );
     }
 
     public function findByPk($id)
     {
-        return R::findOne($this->tableName, ' id = ?', [$id]);
+        return R::findOne($this->tableName, ' '. $this->tablePk .' = ?', [$id]);
     }
 
     public function getRows($params)
@@ -113,40 +97,54 @@ class BaseModel extends \RedBeanPHP\SimpleModel
 
         if (count($field) > 0)
             $sql .= ' AND '.implode(" AND ", $field);
-        
+
         return R::getAll($sql, $params);
     }
 
-    public function save($bean)
+    /**
+     * Ex : $model = new \Model\RemoteModel(1, 'items', 'item_id' );
+     * $model->name = 'Items 1';
+     * $save = $model->save();
+     * @return bool
+     */
+    public function save()
     {
+        $bean = $this;
         $validate = $this->validate($bean);
         if ( is_array($validate) ){
             $this->_errors = $validate;
             return false;
         }
 
-        //Create an extension to by-pass security check in R::dispense
-        R::ext('xdispense', function( $type ){
-            return R::getRedBean()->dispense( $type );
-        });
-
-        $dispense = R::xdispense($this->tableName);
         $attributes = get_object_vars($bean->bean);
-        foreach ($attributes as $attribute => $value){
-            $dispense->{$attribute} = $value;
+        $columns = []; $values = [];
+        foreach ($attributes as $attr => $val) {
+            array_push( $columns, '`'.$attr.'`' );
+            array_push( $values, ':'.$attr);
         }
+        $columns = implode(", ", $columns);
+        $values = implode(", ", $values);
 
-        $save = R::store($dispense);
+        $sql = "INSERT INTO ".$this->tableName." (". $columns .") VALUES (". $values .")";
 
-        if ($save > 0) {
-            $bean->id = $save;
-            return true;
-        } else {
-            return false;
-        }
+        $save = R::exec( $sql, $attributes );
+
+        return ($save > 0)? true : false;
     }
 
-    public function update($bean, $validate = true)
+    /**
+     * Ex :
+     * $item_model = \Model\RemoteModel::model(1, 'items', 'item_id');
+     * $model = $item_model->findByPk(10);
+     * $model->supplier_id = 1;
+     * $update = $item_model->update($model, false, ['supplier_id']);
+     * or $update = $item_model->update($model); // will update all column
+     * @param $bean
+     * @param bool $validate
+     * @param null $attributes
+     * @return bool
+     */
+    public function update($bean, $validate = true, $attributes = null)
     {
         if ($validate) {
             $validate = $this->validate($bean);
@@ -156,18 +154,53 @@ class BaseModel extends \RedBeanPHP\SimpleModel
             }
         }
 
-        $update = R::store($bean);
+        $properties = $bean->getProperties();
+        $values = []; $params = [];
+        if (is_array($attributes)) {
+            foreach ($attributes as $i => $attr) {
+                $values[] = $attr .'=:'. $attr;
+                $params[$attr] = $properties[$attr];
+            }
+        } else {
+            foreach ($properties as $name => $val) {
+                if ($name != $this->tablePk) {
+                    $values[] = $name .'=:'. $name;
+                    $params[$name] = $val;
+                }
+            }
+        }
+
+        if (count($values) == 0) {
+            return false;
+        }
+
+        $bindings = implode(", ", $values);
+
+        $sql = "UPDATE ".$this->tableName." SET ". $bindings ." WHERE ". $this->tablePk ." = ". $bean->{$this->tablePk};
+
+        $update = R::exec( $sql, $params );
 
         return ($update > 0)? true : false;
     }
 
+    /**
+     * Usage :
+     * $item_model = \Model\RemoteModel::model(1, 'items', 'item_id');
+     * $model = $item_model->findByPk(5354);
+     * $delete = $item_model->delete($model);
+     * @param $bean
+     * @return bool
+     */
     public function delete($bean)
     {
         if (!is_object($bean))
             return false;
-        
-        $delete = R::trash($bean);
-        return true;
+
+        $sql = "DELETE FROM ".$this->tableName." WHERE ". $this->tablePk ." = ". $bean->{$this->tablePk};
+
+        $delete = R::exec( $sql, $params );
+
+        return ($delete > 0)? true : false;
     }
 
     public function deleteAllByAttributes($params)
@@ -177,11 +210,13 @@ class BaseModel extends \RedBeanPHP\SimpleModel
             $field[] = $attr. '= :'. $attr;
         }
 
-        $sql = implode(" AND ", $field);
+        $where = implode(" AND ", $field);
 
-        $models = R::find($this->tableName, $sql, $params);
-        $delete =  R::trashAll( $models );
-        return $delete;
+        $sql = "DELETE FROM ".$this->tableName." WHERE ". $where;
+
+        $delete = R::exec( $sql, $params );
+
+        return ($delete > 0)? true : false;
     }
 
     public function validate($bean)
@@ -233,5 +268,3 @@ class BaseModel extends \RedBeanPHP\SimpleModel
         return $this->_scenario;
     }
 }
-
-class R extends \RedBeanPHP\Facade { }

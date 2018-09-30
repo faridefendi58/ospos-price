@@ -14,6 +14,11 @@ $app->get('/[{name}]', function ($request, $response, $args) {
 	if (empty($args['name']))
 		$args['name'] = 'index';
 
+    // just redirect to pos due to no homepage
+    if ($args['name'] == 'index') {
+        return $this->response->withRedirect( 'pos' );
+    }
+
     $settings = $this->get('settings');
     if (!file_exists($settings['theme']['path'].'/'.$settings['theme']['name'].'/views/'.$args['name'].'.phtml')) {
         return $this->view->render($response, '404.phtml');

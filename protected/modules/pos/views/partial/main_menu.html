@@ -7,72 +7,8 @@
         </li>
         <li>
             <a href="#">
-                <span class="fa fa-briefcase"></span>
-                <span class="nav_title">Inventory</span>
-            </a>
-            <div class="sub_panel">
-                <div class="side_inner">
-                    <h4 class="panel_heading panel_heading_first">Purchase Order</h4>
-                    <ul>
-                        <li>
-                            <a href="{{ 'pos/purchases/view' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Pengadaan
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ 'pos/purchases/view' | link }}#create-new">
-                                <span class="side_icon ion-ios7-plus-outline"></span> Pengadaan Baru
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ 'pos/purchases/view-receipt' | link }}#create-new">
-                                <span class="side_icon ion-ios7-plus-outline"></span> Penerimaan Barang
-                            </a>
-                        </li>
-                    </ul>
-                    <h4 class="panel_heading panel_heading_first">Transfer Issue</h4>
-                    <ul>
-                        <li>
-                            <a href="{{ 'pos/transfers/view' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Pindah Persediaan
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ 'pos/transfers/view' | link }}#create-new">
-                                <span class="side_icon ion-ios7-plus-outline"></span> Pindah Persediaan Baru
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ 'pos/transfers/view-receipt' | link }}#create-new">
-                                <span class="side_icon ion-ios7-plus-outline"></span> Penerimaan Persediaan
-                            </a>
-                        </li>
-                    </ul>
-                    <h4 class="panel_heading panel_heading_first">Inventory Issue</h4>
-                    <ul>
-                        <li>
-                            <a href="{{ 'pos/inventories/view' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Pengeluaran Barang
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ 'pos/inventories/view' | link }}#create-new">
-                                <span class="side_icon ion-ios7-plus-outline"></span> Keluarkan Persediaan
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ 'pos/inventories/view-receipt' | link }}#create-new">
-                                <span class="side_icon ion-ios7-plus-outline"></span> Tambahkan Persediaan
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </li>
-        <li>
-            <a href="#">
-                <span class="ion-settings"></span>
-                <span class="nav_title">Kelola</span>
+                <span class="ion-bag"></span>
+                <span class="nav_title">Master</span>
             </a>
             <div class="sub_panel">
                 <div class="side_inner">
@@ -102,24 +38,34 @@
                             </a>
                         </li>
                     </ul>
-                    <h4 class="panel_heading panel_heading_first">Warehouse</h4>
+                    <h4 class="panel_heading panel_heading_first">Outlet</h4>
                     <ul>
                         <li>
-                            <a href="{{ 'pos/warehouses/view' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Warehouse
+                            <a href="{{ 'pos/outlets/view' | link }}">
+                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Outlet
                             </a>
                         </li>
                         <li>
-                            <a href="{{ 'pos/warehouses/group/view' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Grup Warehouse
+                            <a href="{{ 'pos/outlets/group/view' | link }}">
+                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Grup Outlet
                             </a>
                         </li>
                         <li>
-                            <a href="{{ 'pos/warehouses/view' | link }}#create-new">
-                                <span class="side_icon ion-ios7-plus-outline"></span> Warehouse Baru
+                            <a href="{{ 'pos/outlets/view' | link }}#create-new">
+                                <span class="side_icon ion-ios7-plus-outline"></span> Outlet Baru
                             </a>
                         </li>
                     </ul>
+                </div>
+            </div>
+        </li>
+        <li>
+            <a href="#">
+                <span class="ion-settings"></span>
+                <span class="nav_title">Setting</span>
+            </a>
+            <div class="sub_panel">
+                <div class="side_inner">
                     <h4 class="panel_heading panel_heading_first">User</h4>
                     <ul>
                         <li>
@@ -145,11 +91,6 @@
                                 <span class="side_icon ion-ios7-folder-outline"></span> Parameter
                             </a>
                         </li>
-                        {#<li>
-                            <a href="{{ 'pos/extensions/view' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline"></span> Ekstensi
-                            </a>
-                        </li>#}
                     </ul>
                 </div>
             </div>
@@ -165,12 +106,12 @@
                     <ul>
                         <li>
                             <a href="{{ 'pos/reports/stock' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Stok Per Warehouse
+                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Stok Per Outlet
                             </a>
                         </li>
                         <li>
                             <a href="{{ 'pos/reports/activity' | link }}">
-                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Aktifitas Warehouse
+                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Aktifitas Outlet
                             </a>
                         </li>
                     </ul>
