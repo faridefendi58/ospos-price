@@ -25,8 +25,14 @@ class BaseRemoteModel extends \RedBeanPHP\SimpleModel
 
     public function setup($dbKey = null)
     {
-        R::addDatabase( $dbKey, $this->connectionString, $this->username, $this->password, $this->frozen );
-        R::selectDatabase( $dbKey );
+        try {
+            R::addDatabase( $dbKey, $this->connectionString, $this->username, $this->password, $this->frozen );
+            R::selectDatabase( $dbKey );
+        } catch (\RedBeanPHP\RedException $e) {
+            if (strtolower($e->getMessage()) == 'a database has already been specified for this key.') {
+                R::selectDatabase( $dbKey );
+            }
+        }
 
         $this->is_connected = true;
         return true;
@@ -36,6 +42,8 @@ class BaseRemoteModel extends \RedBeanPHP\SimpleModel
     {
         if(isset(self::$_models[$className])) {
             $model = self::$_models[$className];
+            $model->setTableName($table_name);
+            $model->setTablePk($table_pk);
             if ((int)$model->getOutletId() != (int)$outlet_id) {
                 $model = self::$_models[$className] = new $className($outlet_id, $table_name, $table_pk);
             }
@@ -60,6 +68,31 @@ class BaseRemoteModel extends \RedBeanPHP\SimpleModel
     public function getOutletId()
     {
         return $this->outletId;
+    }
+
+    public function getTableName()
+    {
+        return $this->tableName;
+    }
+
+    public function setTableName($table_name)
+    {
+        $this->tableName = self::getTablePrefix().$table_name;
+    }
+
+    public function getTablePk()
+    {
+        return $this->tablePk;
+    }
+
+    public function setTablePk($table_pk)
+    {
+        $this->tablePk = $table_pk;
+    }
+
+    public function getTablePrefix()
+    {
+        return $this->_tbl_prefix;
     }
 
     public function findByAttributes($params)

@@ -20,6 +20,7 @@ class ProductsController extends BaseController
         $app->map(['GET', 'POST'], '/update/[{id}]', [$this, 'update']);
         $app->map(['POST'], '/delete/[{name}]', [$this, 'delete']);
         $app->map(['POST'], '/price-info/[{id}]', [$this, 'price_info']);
+        $app->map(['POST'], '/add-stock/[{id}]', [$this, 'add_stock']);
     }
 
     public function accessRules()
@@ -40,7 +41,7 @@ class ProductsController extends BaseController
                 'expression' => $this->hasAccess('pos/products/create'),
             ],
             ['allow',
-                'actions' => ['update'],
+                'actions' => ['update', 'add-stock'],
                 'expression' => $this->hasAccess('pos/products/update'),
             ],
             ['allow',
@@ -66,8 +67,6 @@ class ProductsController extends BaseController
         $outlets = \Model\OutletsModel::model()->findAll();
         $ids = array_keys($outlets);
         $product_items = [];
-        //$rmodel = new \Model\RemoteModel($outlets[$ids[0]]->id, 'items', 'item_id');
-        //$product_items = $rmodel->getRows();
 
         return $this->_container->module->render(
             $response, 
@@ -131,12 +130,14 @@ class ProductsController extends BaseController
 
         $product_id = $args['id'];
         $outlet_id = $request->getParams()['outlet'];
+
         if (empty($product_id) || empty($outlet_id)) {
             return $this->_container['response']
                 ->withStatus(500)
                 ->withHeader('Content-Type', 'text/html')
                 ->write('Product or Outlet not found !');
         }
+
         $outlet = \Model\OutletsModel::model()->findByPk($outlet_id);
         $item_model = \Model\RemoteModel::model($outlet_id, 'items', 'item_id');
         $model = $item_model->findByPk($product_id);
@@ -146,6 +147,12 @@ class ProductsController extends BaseController
                 ->withHeader('Content-Type', 'text/html')
                 ->write('Product or Outlet not found !');
         }
+
+        $stok_model = \Model\RemoteModel::model($outlet_id, 'item_quantities', 'item_id');
+        $smodel = $stok_model->findByAttributes(['item_id' => $product_id]);
+        // stocking history
+        $invent_model = \Model\RemoteModel::model($outlet_id, 'inventory', 'trans_id');
+        $histories = $invent_model->getTableRows(['limit' => 5]);
 
         if (isset($_POST['Products'])) {
             $_POST['Products']['cost_price'] = $this->money_unformat($_POST['Products']['cost_price']);
@@ -193,7 +200,9 @@ class ProductsController extends BaseController
 
         return $this->_container->module->render($response, 'products/update.html', [
             'model' => $model,
-            'outlet' => $outlet
+            'outlet' => $outlet,
+            'smodel' => $smodel,
+            'histories' => $histories
         ]);
     }
 
@@ -233,11 +242,59 @@ class ProductsController extends BaseController
         }
 
         $rmodel = new \Model\RemoteModel($_POST['id'], 'items', 'item_id');
-        $product_items = $rmodel->getRows();
+        $product_items = $rmodel->getProducts(['deleted' => 0]);
 
         return $this->_container->module->render($response, 'products/_price.html', [
             'product_items' => $product_items,
             'outlet_id' => $_POST['id']
         ]);
+    }
+
+    public function add_stock($request, $response, $args)
+    {
+        $isAllowed = $this->isAllowed($request, $response, $args);
+        if ($isAllowed instanceof \Slim\Http\Response)
+            return $isAllowed;
+
+        if (!$isAllowed) {
+            return $this->notAllowedAction();
+        }
+
+        $outlets = \Model\OutletsModel::model()->findAll();
+
+        $product_id = $args['id'];
+        $outlet_id = $request->getParams()['outlet'];
+
+        $result = ['status' => 'failed'];
+        if (isset($_POST['Products'])) {
+            if (!empty($_POST['Products']['title']) && !empty($_POST['Products']['quantity'])) {
+                $qty_model = \Model\RemoteModel::model($outlet_id, 'item_quantities', 'item_id');
+                $model = $qty_model->findByPk($product_id);
+
+                if ($model instanceof \RedBeanPHP\OODBBean) {
+                    $model->quantity = $model->quantity + $_POST['Products']['quantity'];
+
+                    $update = $qty_model->update($model, false, ['quantity']);
+                    if ($update) {
+                        $model2 = new \Model\RemoteModel($outlet_id, 'inventory', 'trans_id' );
+                        $model2->trans_items = $product_id;
+                        $model2->trans_user = 1;
+                        $model2->trans_date = date("Y-m-d H:i:s");
+                        $model2->trans_comment = $_POST['Products']['title'];
+                        $model2->trans_location = 1;
+                        $model2->trans_inventory = $_POST['Products']['quantity'];
+                        $save = $model2->save();
+
+                        $result['status'] = 'success';
+                        $result['message'] = 'Data berhasil disimpan.';
+                    }
+                }
+            } else {
+                $result['status'] = 'failed';
+                $result['message'] = 'Judul dan jumlah barang tidak boleh kosong.';
+            }
+        }
+
+        return $response->withJson( $result, 201 );
     }
 }

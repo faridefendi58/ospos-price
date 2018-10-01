@@ -27,9 +27,6 @@ Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
                                     <a data-toggle="tab" href="#update">Informasi Dasar</a>
                                 </li>
                                 <li>
-                                    <a data-toggle="tab" href="#price">Harga Jual</a>
-                                </li>
-                                <li>
                                     <a data-toggle="tab" href="#persediaan">Persediaan</a>
                                 </li>
                             </ul>
@@ -37,11 +34,8 @@ Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
                                 <div id="update" class="tab-pane fade in active">
                                     {% include 'products/_form.html' with {'model':model} %}
                                 </div>
-                                <div id="price" class="tab-pane fade">
-                                    {# include 'products/_price.html' with {'model':model, 'prices':prices} #}
-                                </div>
                                 <div id="persediaan" class="tab-pane fade">
-                                    {# include 'products/_stock.html' with {'model':model, 'stocks':stocks} #}
+                                    {% include 'products/_stock.html' with {'model':model, 'smodel':smodel} %}
                                 </div>
                             </div>
                         </div>

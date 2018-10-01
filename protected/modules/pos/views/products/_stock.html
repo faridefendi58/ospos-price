@@ -1,40 +1,78 @@
-<table class="table table-hover mt20">
-    <thead>
-    <tr>
-        <th>No</th>
-        <th>Outlet</th>
-        <th>Jumlah Stock</th>
-        <th>Pengadaan Terakhir</th>
-        <td>&nbsp;</td>
-    </tr>
-    </thead>
-    <tbody>
-    {% for i, stock in stocks %}
-    <tr>
-        <td>{{ i+1 }}</td>
-        <td>
-            <a href="{{ 'pos/outlets/update' | link }}/{{ stock.outlet_id }}#detail" target="_blank">
-                {{ stock.outlet_name }}
-            </a>
-        </td>
-        <td>{{ stock.quantity }} {{ stock.unit | title }}</td>
-        <td>
-            {% if stock.updated_at %}
-                {{ stock.updated_at }}
-            {% else %}
-                {{ stock.created_at }}
-            {% endif %}
-        </td>
-        <td>
-            <a href="{{ 'pos/products/stock' | link }}/{{ stock.product_id }}?wh={{ stock.outlet_id }}" title="Detail stock">
-                <i class="fa fa-search"></i>
-            </a>
-        </td>
-    </tr>
-    {% else %}
-    <tr class="no-data">
-        <td>Tidak ditemukan data.</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="row">
+    <div class="col-md-6">
+        <table class="table table-hover mt20">
+            <tbody>
+            <tr>
+                <td><b>Jumlah Stok</b></td>
+                <td><b>{{ smodel.quantity | number_format(0, ',', '.') }}</b></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <p>5 Transaksi terakhir untuk <b>{{ model.name }}</b></p>
+        <table class="table table-hover mt20">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Catatan</th>
+                <th>Tanggal Input</th>
+                <th>Jumlah Barang</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i, history in histories %}
+            <tr>
+                <td>{{ history.trans_id }}</td>
+                <td>{{ history.trans_comment }}</td>
+                <td>{{ history.trans_date }}</td>
+                <td>{{ history.trans_inventory | number_format(0, ',', '.') }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-6">
+        <form method="post" id="stock-form" class="mt20" action="{{ 'pos/products/add-stock' | link }}/{{ model.item_id }}?outlet={{ outlet.id }}">
+            <div class="alert alert-success" style="display: none;"></div>
+            <div class="mb10">
+                <p>Tambah stok <b>{{ model.name }}</b> di <b>{{ outlet.title }}</b></p>
+            </div>
+            <div class="form-group">
+                <label for="name">Catatan <span class="text-danger">*</span></label>
+                <input type="text" id="name" name="Products[title]" class="form-control" placeholder="Masukkan keterangan kenapa stok ditambahkan." required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Jumlah Barang <span class="text-danger">*</span></label>
+                <input type="text" id="quantity" name="Products[quantity]" class="form-control" placeholder="Masukkan jumlah barang" required>
+            </div>
+            <input type="hidden" name="Products[item_id]" value="{{ model.item_id }}">
+            <input type="hidden" name="Products[outlet_id]" value="{{ outlet.id }}">
+            <div class="form-group">
+                <input type="submit" value="Simpan" class="btn btn-info">
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#stock-form').submit(function () {
+        var url = $(this).attr('action');
+        $.ajax({
+            'url': url,
+            'type':'post',
+            'data': $('#stock-form').serialize(),
+            'success': function(data) {
+                if (data.status == 'success') {
+                    var alert_success = $('#stock-form').find('.alert-success');
+                    alert_success.html(data.message);
+                    alert_success.show();
+                    setTimeout(function () {
+                        window.location.reload(true);
+                    }, 5000);
+                }
+            }
+        });
+
+        return false;
+    });
+</script>

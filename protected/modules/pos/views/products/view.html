@@ -13,7 +13,7 @@ Produk - {{ App.params.site_name }}
                 <p class="text-muted">Kelola data produk</p>
             </div>
             <div class="col-sm-2 text-right">
-                <a class="btn btn-default" data-toggle="tab" href="#create-new">Buat Produk Baru</a>
+                <a class="btn btn-default" href="#create-new">Buat Produk Baru</a>
             </div>
         </div>
     </div>
@@ -23,7 +23,7 @@ Produk - {{ App.params.site_name }}
                 <div class="col-md-12">
                     <div class="panel panel-default">
                         <div class="panel-body">
-                            <ul class="nav nav-tabs" id="tabs_a">
+                            <ul class="nav nav-tabs main-tabs" id="tabs_a">
                                 {% set idx = 1 %}
                                 {% for i, outlet in outlets %}
                                 <li {% if i == 1 %}class="active"{% endif %}>
@@ -132,6 +132,8 @@ Produk - {{ App.params.site_name }}
                });
            }
        });
+
+       $('a[data-toggle="tab"]').first().trigger('click');
     });
 </script>
 {% endblock %}

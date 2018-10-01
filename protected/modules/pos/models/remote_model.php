@@ -61,9 +61,20 @@ class RemoteModel extends \Model\BaseRemoteModel
 
         $params = [];
         if (is_array($data)) {
+            $field = array();
+            foreach ($params as $attr => $val){
+                $field[] = $attr. '= :'. $attr;
+            }
+
+            if (count($field) > 0)
+                $sql .= ' AND '.implode(" AND ", $field);
         }
 
         $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';
+
+        if (is_array($data) && isset($data['limit'])) {
+            $sql .= ' LIMIT '. $data['limit'];
+        }
 
         $sql = str_replace(['{tableName}'], [$this->tableName], $sql);
 
@@ -76,5 +87,32 @@ class RemoteModel extends \Model\BaseRemoteModel
     {
         $exec = R::exec($sql, $params);
         return $exec;
+    }
+
+    public function getProducts($data = null)
+    {
+        $sql = 'SELECT t.item_id, t.item_number, t.name, t.category, 
+            t.description, t.cost_price, t.unit_price, t.deleted  
+            FROM {tableName} t 
+            WHERE 1';
+
+        $params = [];
+        if (is_array($data)) {
+            $field = array();
+            foreach ($params as $attr => $val){
+                $field[] = $attr. '= :'. $attr;
+            }
+
+            if (count($field) > 0)
+                $sql .= ' AND '.implode(" AND ", $field);
+        }
+
+        $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';
+
+        $sql = str_replace(['{tableName}'], [$this->tableName], $sql);
+
+        $rows = R::getAll( $sql, $params );
+
+        return $rows;
     }
 }
