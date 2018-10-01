@@ -32,10 +32,10 @@ class ProductStocksModel extends \Model\BaseModel
      */
     public function getData($product_id = 0)
     {
-        $sql = 'SELECT t.*, p.unit, w.title AS warehouse_name     
+        $sql = 'SELECT t.*, p.unit, w.title AS outlet_name     
             FROM {tablePrefix}ext_product_stock t 
             LEFT JOIN {tablePrefix}ext_product p ON p.id = t.product_id 
-            LEFT JOIN {tablePrefix}ext_warehouse w ON w.id = t.warehouse_id 
+            LEFT JOIN {tablePrefix}ext_outlet w ON w.id = t.outlet_id 
             WHERE 1';
 
         $params = [];

@@ -1,6 +1,8 @@
 <?php
 namespace Model;
 
+use PHPMailer\PHPMailer\Exception;
+
 require_once __DIR__ . '/../components/rb.php';
 
 class BaseRemoteModel extends \RedBeanPHP\SimpleModel
@@ -17,6 +19,7 @@ class BaseRemoteModel extends \RedBeanPHP\SimpleModel
     protected $_tbl_prefix;
     protected $dbKey;
     protected $tablePk;
+    protected $outletId;
 
     private static $_models = array(); // class name => model
 
@@ -31,9 +34,14 @@ class BaseRemoteModel extends \RedBeanPHP\SimpleModel
 
     public static function model($outlet_id = 1, $table_name = 'items', $table_pk = 'id', $className=__CLASS__)
     {
-        if(isset(self::$_models[$className]))
-            return self::$_models[$className];
-        else
+        if(isset(self::$_models[$className])) {
+            $model = self::$_models[$className];
+            if ((int)$model->getOutletId() != (int)$outlet_id) {
+                $model = self::$_models[$className] = new $className($outlet_id, $table_name, $table_pk);
+            }
+
+            return $model;
+        } else
         {
             $model = self::$_models[$className] = new $className($outlet_id, $table_name, $table_pk);
             return $model;
@@ -47,6 +55,11 @@ class BaseRemoteModel extends \RedBeanPHP\SimpleModel
     public function getRb()
     {
         return R::getVersion();
+    }
+
+    public function getOutletId()
+    {
+        return $this->outletId;
     }
 
     public function findByAttributes($params)

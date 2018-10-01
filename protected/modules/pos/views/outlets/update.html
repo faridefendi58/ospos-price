@@ -32,6 +32,9 @@ Kelola Outlet - {{ App.params.site_name }}
                                 <li>
                                     <a data-toggle="tab" href="#data-resource">Data Resource</a>
                                 </li>
+                                <li>
+                                    <a data-toggle="tab" href="#data-item">Item Barang</a>
+                                </li>
                             </ul>
                             <div class="tab-content" id="tabs_content_a">
                                 <div id="detail" class="tab-pane fade">
@@ -42,6 +45,9 @@ Kelola Outlet - {{ App.params.site_name }}
                                 </div>
                                 <div id="data-resource" class="tab-pane fade">
                                     {% include 'outlets/_data_resource.html' with {'model':model,'detail':detail} %}
+                                </div>
+                                <div id="data-item" class="tab-pane fade">
+                                    {% include 'outlets/_data_item.html' with {'model':model,'product_items':product_items} %}
                                 </div>
                             </div>
                         </div>

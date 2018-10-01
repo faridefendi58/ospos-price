@@ -176,10 +176,17 @@ class OutletsController extends BaseController
             }
         }
 
+        $product_items = [];
+        if (!empty($model->configs)) {
+            $rmodel = new \Model\RemoteModel($model->id, 'items', 'item_id');
+            $product_items = $rmodel->getRows();
+        }
+
         return $this->_container->module->render($response, 'outlets/update.html', [
             'model' => $model,
             'detail' => $detail,
-            'groups' => $groups
+            'groups' => $groups,
+            'product_items' => $product_items
         ]);
     }
 

@@ -2,7 +2,7 @@
     <thead>
     <tr>
         <th>No</th>
-        <th>Warehouse</th>
+        <th>Outlet</th>
         <th>Jumlah Stock</th>
         <th>Pengadaan Terakhir</th>
         <td>&nbsp;</td>
@@ -13,8 +13,8 @@
     <tr>
         <td>{{ i+1 }}</td>
         <td>
-            <a href="{{ 'pos/warehouses/update' | link }}/{{ stock.warehouse_id }}#detail" target="_blank">
-                {{ stock.warehouse_name }}
+            <a href="{{ 'pos/outlets/update' | link }}/{{ stock.outlet_id }}#detail" target="_blank">
+                {{ stock.outlet_name }}
             </a>
         </td>
         <td>{{ stock.quantity }} {{ stock.unit | title }}</td>
@@ -26,7 +26,7 @@
             {% endif %}
         </td>
         <td>
-            <a href="{{ 'pos/products/stock' | link }}/{{ stock.product_id }}?wh={{ stock.warehouse_id }}" title="Detail stock">
+            <a href="{{ 'pos/products/stock' | link }}/{{ stock.product_id }}?wh={{ stock.outlet_id }}" title="Detail stock">
                 <i class="fa fa-search"></i>
             </a>
         </td>

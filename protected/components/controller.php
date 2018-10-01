@@ -90,4 +90,26 @@ class BaseController
 
         return $this->_container->get('settings')['params']['site_url'];
     }
+
+    /**
+     * clean string from non alphanumeric
+     */
+    public function alphaNumeric($string,$replace='+')
+    {
+        //remove all non alphanumeric
+        return preg_replace("/[^[:alnum:][:space:]]/ui", $replace, $string);
+    }
+
+    /**
+     * unformat money format to base number
+     */
+    public function money_unformat($number, $thousand='.', $decimal=',')
+    {
+        if (strstr($number, $thousand))
+            $number = str_replace($thousand, '', $number);
+        if (strstr($number, $decimal))
+            $number = str_replace($decimal, '.', $number);
+
+        return $number;
+    }
 }

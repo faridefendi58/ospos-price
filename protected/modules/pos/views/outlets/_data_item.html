@@ -19,10 +19,10 @@
             <td style="text-align: right;">{{ item.cost_price | number_format(2, ',', '.') }}</td>
             <td style="text-align: right;">{{ item.unit_price | number_format(2, ',', '.') }}</td>
             <td class="text-center">
-                <a href="{{ 'pos/products/update' | link }}/{{ item.item_id }}?outlet={{ outlet_id }}" title="Ubah Outlet">
+                <a href="{{ 'pos/products/update' | link }}/{{ item.item_id }}?outlet={{ model.id }}" title="Ubah Outlet">
                     <i class="fa fa-pencil"></i>
                 </a>
-                <a href="{{ 'pos/products/delete' | link }}/{{ item.item_id }}?outlet={{ outlet_id }}" onclick="return hapus(this);">
+                <a href="{{ 'pos/products/delete' | link }}/{{ item.item_id }}?outlet={{ model.id }}" onclick="return hapus(this);">
                     <i class="fa fa-trash-o"></i>
                 </a>
             </td>
@@ -35,3 +35,26 @@
         </tbody>
     </table>
 </div>
+
+{% block endbodyjs %}
+<script src="{{ 'lib/DataTables/media/js/jquery.dataTables.min.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/DataTables/media/js/dataTables.bootstrap.js' | admin_asset_url }}"></script>
+<script type="text/javascript">
+    function hapus(data) {
+        if (confirm('Anda yakin ingin menghapus item ini ?')) {
+            var $this =  $(data);
+            var url = $this.attr('href');
+            $.ajax({
+                'url': url,
+                'type':'post',
+                'success': function(data) {
+                    if (data.status == 'success') {
+                        $this.parent().parent().remove();
+                    }
+                }
+            });
+        }
+        return false;
+    }
+</script>
+{% endblock %}

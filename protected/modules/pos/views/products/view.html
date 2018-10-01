@@ -24,64 +24,47 @@ Produk - {{ App.params.site_name }}
                     <div class="panel panel-default">
                         <div class="panel-body">
                             <ul class="nav nav-tabs" id="tabs_a">
-                                <li class="active">
-                                    <a data-toggle="tab" href="#daftar">Daftar Produk</a>
+                                {% set idx = 1 %}
+                                {% for i, outlet in outlets %}
+                                <li {% if i == 1 %}class="active"{% endif %}>
+                                    <a data-toggle="tab" href="#outlet-{{ idx }}" outlet-id="{{ outlet.id }}">{{ outlet.title }}</a>
                                 </li>
-                                <li>
-                                    <a data-toggle="tab" href="#create-new">Tambah Produk Baru</a>
-                                </li>
-                                <li>
-                                    <a data-toggle="tab" href="#kategori">Daftar Kategori</a>
-                                </li>
-                                <li>
-                                    <a data-toggle="tab" href="#create-new-category">Tambah Kategori Baru</a>
-                                </li>
+                                {% set idx = idx + 1 %}
+                                {% endfor %}
                             </ul>
                             <div class="tab-content" id="tabs_content_a">
-                                <div id="daftar" class="tab-pane fade in active">
+                                <div id="outlet-1" class="tab-pane fade in active">
                                     <div id="dt_basic_wrapper" class="dataTables_wrapper form-inline no-footer table-responsive mt20" role="grid">
                                         <table id="dt_basic" class="table table-striped dataTable">
                                             <thead>
                                             <tr>
-                                                <th>No</th>
-                                                <th>Nama Produk</th>
-                                                <th>Kategori</th>
-                                                <th>Unit</th>
-                                                <th>Total Stok</th>
-                                                <th>Current Cost</th>
-                                                <th>&nbsp;</th>
+                                                <th>ID</th>
+                                                <th>Barcode</th>
+                                                <th>Item Name</th>
+                                                <th>Cost Price</th>
+                                                <th>Unit Price</th>
+                                                <th width="50px">&nbsp;</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {% for i, product in products %}
+                                            {% for i, item in product_items %}
                                             <tr>
-                                                <td><center>{{ i + 1 }}</center></td>
-                                                <td>
-                                                    <a href="{{ 'pos/products/update' | link }}/{{ product.id }}" title="Ubah Product">
-                                                        {{ product.title }}
-                                                    </a>
-                                                </td>
-                                                <td>{{ product.category_name }}</td>
-                                                <td>{{ product.unit }}</td>
-                                                <td style="text-align: left;">{{ stmodel.getTotalStock(product.id) | number_format(0, ',', '.') | default(0) }}</td>
-                                                <td style="text-align: left;">{{ product.current_cost | number_format(0, ',', '.') }}</td>
-                                                <td>
-                                                    <a href="{{ 'pos/products/update' | link }}/{{ product.id }}" title="Ubah Product">
+                                                <td><center>{{ item.item_id }}</center></td>
+                                                <td>{{ item.item_number }}</td>
+                                                <td>{{ item.name }}</td>
+                                                <td style="text-align: right;">{{ item.cost_price | number_format(2, ',', '.') }}</td>
+                                                <td style="text-align: right;">{{ item.unit_price | number_format(2, ',', '.') }}</td>
+                                                <td class="text-center">
+                                                    <a href="{{ 'pos/products/update' | link }}/{{ item.item_id }}?outlet={{ model.id }}" title="Ubah Outlet">
                                                         <i class="fa fa-pencil"></i>
                                                     </a>
-                                                    <a href="{{ 'pos/products/update' | link }}/{{ product.id }}#price" title="Ubah Harga">
-                                                        <i class="fa fa-money"></i>
-                                                    </a>
-                                                    <a href="{{ 'pos/products/update' | link }}/{{ product.id }}#persediaan" title="Detail Persediaan">
-                                                        <i class="fa fa-briefcase"></i>
-                                                    </a>
-                                                    <a href="{{ 'pos/products/delete' | link }}/{{ product.id }}" onclick="return hapus(this);">
+                                                    <a href="{{ 'pos/products/delete' | link }}/{{ item.item_id }}?outlet={{ model.id }}" onclick="return hapus(this);">
                                                         <i class="fa fa-trash-o"></i>
                                                     </a>
                                                 </td>
                                             </tr>
                                             {% else %}
-                                            <tr>
+                                            <tr class="no-data">
                                                 <td>No data founds</td>
                                             </tr>
                                             {% endfor %}
@@ -89,49 +72,12 @@ Produk - {{ App.params.site_name }}
                                         </table>
                                     </div>
                                 </div>
-                                <div id="create-new" class="tab-pane fade">
-                                    {% include 'products/_form.html' %}
+                                {% set idx2 = 2 %}
+                                {% for j, outlet in outlets %}
+                                <div id="outlet-{{ idx2 }}" class="tab-pane fade">
                                 </div>
-                                <div id="kategori" class="tab-pane fade">
-                                    <div id="dt_basic_wrapper" class="dataTables_wrapper form-inline no-footer table-responsive mt20" role="grid">
-                                        <table id="dt_basic" class="table table-striped dataTable">
-                                            <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Nama Kategori</th>
-                                                <th>Deskripsi</th>
-                                                <th>Tanggal Dibuat</th>
-                                                <th>&nbsp;</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {% for i, category in categories %}
-                                            <tr>
-                                                <td><center>{{ i+1 }}</center></td>
-                                                <td>{{ category.title }}</td>
-                                                <td>{{ category.description | default('-') }}</td>
-                                                <td>{{ category.created_at }}</td>
-                                                <td>
-                                                    <a href="{{ 'pos/products/update-category' | link }}/{{ category.id }}" title="Ubah Kategori">
-                                                        <i class="fa fa-pencil"></i>
-                                                    </a>
-                                                    <a href="{{ 'pos/products/delete-category' | link }}/{{ category.id }}" onclick="return hapus(this);">
-                                                        <i class="fa fa-trash-o"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                            {% else %}
-                                            <tr>
-                                                <td>No data founds</td>
-                                            </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div id="create-new-category" class="tab-pane fade">
-                                    {% include 'products/_form_category.html' %}
-                                </div>
+                                {% set idx2 = idx2 + 1 %}
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -169,6 +115,23 @@ Produk - {{ App.params.site_name }}
            if ($('a[href="#'+hash+'"]').length > 0)
                 $('a[href="#'+hash+'"]').click();
        }
+       $('a[data-toggle="tab"]').click(function () {
+           var href = $(this).attr('href');
+           var id = $(this).attr('outlet-id');
+           if ($(href).find('tr.no-data').length > 0 || $(href).find('table').length <= 0) {
+               $.ajax({
+                   'beforeSend': function() { $(href).html('<span class="ion-loading-a mt-3"></span>'); },
+                   'complete': function() { $(href).find('ion-loading-a').remove(); },
+                   'url': "{{ 'pos/products/price-info' | link }}/"+ id,
+                   'type':'post',
+                   'data' : {'id':id},
+                   'success': function(data) {
+                       $(href).html(data);
+                       $(href).find('.dataTable').dataTable();
+                   }
+               });
+           }
+       });
     });
 </script>
 {% endblock %}

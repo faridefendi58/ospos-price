@@ -28,6 +28,7 @@ class RemoteModel extends \Model\BaseRemoteModel
             $this->tableName = $cfg_params['settings']['db']['tablePrefix'].$table_name;
             $this->_tbl_prefix = $cfg_params['settings']['db']['tablePrefix'];
             $this->tablePk = $table_pk;
+            $this->outletId = $outlet_id;
 
             if (!$this->is_connected) {
                 $this->setup($cfg_params['settings']['db']['dbKey']);
@@ -62,7 +63,7 @@ class RemoteModel extends \Model\BaseRemoteModel
         if (is_array($data)) {
         }
 
-        $sql .= ' ORDER BY t.id DESC';
+        $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';
 
         $sql = str_replace(['{tableName}'], [$this->tableName], $sql);
 
