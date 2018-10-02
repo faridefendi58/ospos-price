@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block pagetitle %}
+Tambah Produk - {{ App.params.site_name }}
+{% endblock %}
+
+{% block content %}
+<div id="main_wrapper">
+    <div class="page_bar clearfix">
+        <div class="row">
+            <div class="col-sm-10">
+                <h1 class="page_title">Tambah Produk Baru</h1>
+                <p class="text-muted">Halaman penambahan data produk</p>
+            </div>
+            <div class="col-sm-2 text-right">
+                <a class="btn btn-default" href="{{ 'pos/products/view' | link }}">Daftar Produk</a>
+            </div>
+        </div>
+    </div>
+    <div class="page_content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            {% include 'products/_form.html' with {'model':model} %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'partial/right_menu.html' %}
+{% endblock %}
+{% block endbodyjs %}
+<script type="text/javascript">
+    $(function () {
+        if (window.location.hash) {
+            var hash = window.location.hash.substring(1);
+            if ($('a[href="#'+hash+'"]').length > 0)
+                $('a[href="#'+hash+'"]').click();
+        }
+    });
+</script>
+{% endblock %}

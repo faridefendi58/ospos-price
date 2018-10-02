@@ -46,6 +46,9 @@ $app->group('/pos', function () use ($user) {
     $this->group('/reports', function() use ($user) {
         new Pos\Controllers\ReportsController($this, $user);
     });
+    $this->group('/pricelists', function() use ($user) {
+        new Pos\Controllers\PricelistsController($this, $user);
+    });
 });
 
 ?>

@@ -4,6 +4,16 @@
         <p>Kolom bertanda <span class="red">*</span> tidak boleh dikosongi</p>
     </div>
     <div class="col-md-6">
+        {% if outlets %}
+        <div class="form-group">
+            <label for="reg_select">Outlet <span class="text-danger">*</span></label>
+            <select id="reg_select" name="Products[outlet_id]" class="form-control">
+                {% for i, outlet in outlets %}
+                <option value="{{ outlet.id }}">{{ outlet.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
         <div class="form-group">
             <label for="name">Nama Produk <span class="text-danger">*</span></label>
             <input type="text" id="name" name="Products[name]" class="form-control" {% if model.name %}value="{{ model.name }}"{% endif %} required>
@@ -22,10 +32,17 @@
             <label for="barcode">Barcode <span class="text-danger">*</span></label>
             <input type="text" id="barcode" name="Products[item_number]" class="form-control" {% if model.item_number %}value="{{ model.item_number }}"{% endif %} required>
         </div>
+        {% if not model.item_id %}
+        <div class="form-group">
+            <label for="stock">Jumlah Stok <span class="text-danger">*</span></label>
+            <input type="text" id="stock" name="Products[quantity]" class="form-control" value="1" required>
+        </div>
+        {% endif %}
         <div class="form-group">
             <label for="desc">Deskripsi</label>
             <textarea name="Products[description]" id="desc" cols="10" rows="2" class="form-control">{% if model and model.description %}{{ model.description }}{% endif %}</textarea>
         </div>
+        {% if model.item_id %}
         <div class="form-group">
             <div class="checkbox">
                 <label>
@@ -34,6 +51,7 @@
                 </label>
             </div>
         </div>
+        {% endif %}
         <input type="hidden" name="Products[item_id]" value="{{ model.item_id }}">
         <div class="form-group">
             <input type="submit" value="Simpan" class="btn btn-info">

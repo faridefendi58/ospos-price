@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+{% block pagetitle %}
+Daftar Harga - {{ App.params.site_name }}
+{% endblock %}
+
+{% block content %}
+<!-- main content -->
+<div id="main_wrapper">
+    <div class="page_bar clearfix">
+        <div class="row">
+            <div class="col-sm-10">
+                <h1 class="page_title">Daftar Harga Semua Outlet</h1>
+                <p class="text-muted">Kelola data daftar harga di semua outlet yang aktif</p>
+            </div>
+            <div class="col-sm-2 text-right">
+                <a class="btn btn-default hidden" href="{{ 'pos/pricelists/create' | link }}">Buat Daftar Harga Baru</a>
+            </div>
+        </div>
+    </div>
+    <div class="page_content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <ul class="nav nav-tabs main-tabs" id="tabs_a">
+                                {% set idx = 1 %}
+                                {% for i, outlet in outlets %}
+                                <li {% if i == 1 %}class="active"{% endif %}>
+                                    <a data-toggle="tab" href="#outlet-{{ idx }}" outlet-id="{{ outlet.id }}">{{ outlet.title }}</a>
+                                </li>
+                                {% set idx = idx + 1 %}
+                                {% endfor %}
+                            </ul>
+                            <div class="tab-content" id="tabs_content_a">
+                                {% set idx2 = 1 %}
+                                {% for j, outlet in outlets %}
+                                <div id="outlet-{{ idx2 }}" class="tab-pane fade {% if idx2 == 1 %}in active{% endif %}">
+                                    <div id="dt_basic_wrapper" class="dataTables_wrapper form-inline no-footer table-responsive mt20" role="grid">
+                                        <table id="dt_basic" class="table table-striped dataTable">
+                                            <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Kode</th>
+                                                <th>Nama</th>
+                                                <th>Deskrisi</th>
+                                                <th width="50px">&nbsp;</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for i, item in pricelists %}
+                                            <tr>
+                                                <td><center>{{ item.id }}</center></td>
+                                                <td>{{ item.code }}</td>
+                                                <td>{{ item.name }}</td>
+                                                <td>{{ item.description }}</td>
+                                                <td class="text-center">
+                                                    {% if item.is_default %}
+                                                    <a href="{{ 'pos/products/view' | link }}#outlet-{{ idx2 }}" title="Ubah Harga">
+                                                        <i class="fa fa-pencil"></i>
+                                                    </a>
+                                                    {% else %}
+                                                    <a href="{{ 'pos/pricelists/update' | link }}/{{ item.id }}?outlet={{ outlet.id }}" title="Ubah Price list">
+                                                        <i class="fa fa-pencil"></i>
+                                                    </a>
+                                                    <a href="{{ 'pos/pricelists/delete' | link }}/{{ item.id }}?outlet={{ outlet.id }}" onclick="return hapus(this);">
+                                                        <i class="fa fa-trash-o"></i>
+                                                    </a>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% else %}
+                                            <tr class="no-data">
+                                                <td>No data founds</td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% set idx2 = idx2 + 1 %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'partial/right_menu.html' %}
+{% endblock %}
+{% block endbodyjs %}
+<script src="{{ 'lib/DataTables/media/js/jquery.dataTables.min.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/DataTables/media/js/dataTables.bootstrap.js' | admin_asset_url }}"></script>
+<script type="text/javascript">
+    function hapus(data) {
+        if (confirm('Anda yakin ingin menghapus item ini ?')) {
+            var $this =  $(data);
+            var url = $this.attr('href');
+            $.ajax({
+                'url': url,
+                'type':'post',
+                //'dataType': 'json',
+                'success': function(data) {
+                    if (data.status == 'success') {
+                        $this.parent().parent().remove();
+                    }
+                }
+            });
+        }
+        return false;
+    }
+    $(function () {
+        if (window.location.hash) {
+            var hash = window.location.hash.substring(1);
+            if ($('a[href="#'+hash+'"]').length > 0)
+                $('a[href="#'+hash+'"]').click();
+        }
+        /*$('a[data-toggle="tab"]').click(function () {
+            var href = $(this).attr('href');
+            var id = $(this).attr('outlet-id');
+            if ($(href).find('tr.no-data').length > 0 || $(href).find('table').length <= 0) {
+                $.ajax({
+                    'beforeSend': function() { $(href).html('<span class="ion-loading-a" style="position:fixed;top:50%;left:50%;font-size: 100px;"></span>'); },
+                    'complete': function() {$(href).find('ion-loading-a').remove();},
+                    'url': "{{ 'pos/products/price-info' | link }}/"+ id,
+                    'type':'post',
+                    'data' : {'id':id},
+                    'success': function(data) {
+                        $(href).html(data);
+                        $(href).find('.dataTable').dataTable();
+                    }
+                });
+            }
+        });*/
+
+        //$('a[data-toggle="tab"]').first().trigger('click');
+    });
+</script>
+{% endblock %}

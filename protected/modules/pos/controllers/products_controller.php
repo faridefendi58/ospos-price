@@ -16,10 +16,10 @@ class ProductsController extends BaseController
     public function register($app)
     {
         $app->map(['GET'], '/view', [$this, 'view']);
-        $app->map(['POST'], '/create', [$this, 'create']);
+        $app->map(['GET', 'POST'], '/create', [$this, 'create']);
         $app->map(['GET', 'POST'], '/update/[{id}]', [$this, 'update']);
         $app->map(['POST'], '/delete/[{name}]', [$this, 'delete']);
-        $app->map(['POST'], '/price-info/[{id}]', [$this, 'price_info']);
+        $app->map(['GET', 'POST'], '/price-info/[{id}]', [$this, 'price_info']);
         $app->map(['POST'], '/add-stock/[{id}]', [$this, 'add_stock']);
     }
 
@@ -88,32 +88,56 @@ class ProductsController extends BaseController
             return $this->notAllowedAction();
         }
 
-        $model = new \Model\ProductsModel();
+        $omodel = new \Model\OutletsModel();
+        $outlets = $omodel->getRows(['active' => 1]);
         if (isset($_POST['Products'])) {
-            $model->title = $_POST['Products']['title'];
-            $model->product_category_id = $_POST['Products']['product_category_id'];
-            if (!empty($_POST['Products']['unit']))
-                $model->unit = $_POST['Products']['unit'];
-            $model->description = $_POST['Products']['description'];
-            $model->active = $_POST['Products']['active'];
-            $model->created_at = date("Y-m-d H:i:s");
-            $model->created_by = $this->_user->id;
-            try {
-                $save = \Model\ProductsModel::model()->save($model);
-            } catch (\Exception $e) {
-                var_dump($e->getMessage()); exit;
-            }
+            $_POST['Products']['cost_price'] = $this->money_unformat($_POST['Products']['cost_price']);
+            $_POST['Products']['unit_price'] = $this->money_unformat($_POST['Products']['unit_price']);
 
+            $item_model = new \Model\RemoteModel($_POST['Products']['outlet_id'], 'items', 'item_id' );
+            $item_model->item_number = $_POST['Products']['item_number'];
+            $item_model->name = $_POST['Products']['name'];
+            $item_model->cost_price = $_POST['Products']['cost_price'];
+            $item_model->unit_price = $_POST['Products']['unit_price'];
+            $item_model->description = $_POST['Products']['description'];
+
+            $save = $item_model->save();
             if ($save) {
+                if ($_POST['Products']['quantity'] > 0) {
+                    $qty_model = new \Model\RemoteModel($_POST['Products']['outlet_id'], 'item_quantities', 'item_id' );
+                    $item_data = $item_model->findByAttributes(['item_number' => $_POST['Products']['item_number']]);
+                    $qty_model->item_id = $item_data['item_id'];
+                    $qty_model->location_id = 1;
+                    $qty_model->quantity = $_POST['Products']['quantity'];
+                    $save2 = $qty_model->save();
+                    if ($save2) {
+                        $inv_model = new \Model\RemoteModel($_POST['Products']['outlet_id'], 'inventory', 'trans_id' );
+                        $inv_model->trans_items = $item_data['item_id'];
+                        $inv_model->trans_user = 1;
+                        $inv_model->trans_date = date("Y-m-d H:i:s");
+                        $inv_model->trans_comment = 'Input dari integrator system.';
+                        $inv_model->trans_location = 1;
+                        $inv_model->trans_inventory = $_POST['Products']['quantity'];
+                        $save3 = $inv_model->save();
+                    }
+                }
+
                 return $response->withJson(
                     [
                         'status' => 'success',
                         'message' => 'Data berhasil disimpan.',
                     ], 201);
             } else {
-                return $response->withJson(['status'=>'failed'], 201);
+                return $response->withJson(
+                    [
+                        'status' => 'failed'
+                    ], 201);
             }
         }
+
+        return $this->_container->module->render($response, 'products/create.html', [
+            'outlets' => $outlets
+        ]);
     }
 
     public function update($request, $response, $args)
@@ -220,8 +244,7 @@ class ProductsController extends BaseController
             return false;
         }
 
-        $model = \Model\ProductsModel::model()->findByPk($args['name']);
-        $delete = \Model\ProductsModel::model()->delete($model);
+        $delete = false;
         if ($delete) {
             return $response->withJson(
                 [
@@ -241,13 +264,10 @@ class ProductsController extends BaseController
             return $this->notAllowedAction();
         }
 
-        $rmodel = new \Model\RemoteModel($_POST['id'], 'items', 'item_id');
-        $product_items = $rmodel->getProducts(['deleted' => 0]);
+        $rmodel = new \Model\RemoteModel($args['id'], 'items', 'item_id');
+        $product_items = $rmodel->getProducts(['deleted' => 0, 'outlet_id' => $args['id']]);
 
-        return $this->_container->module->render($response, 'products/_price.html', [
-            'product_items' => $product_items,
-            'outlet_id' => $_POST['id']
-        ]);
+        return $response->withJson($product_items, 201);
     }
 
     public function add_stock($request, $response, $args)

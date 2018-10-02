@@ -89,12 +89,20 @@ class RemoteModel extends \Model\BaseRemoteModel
         return $exec;
     }
 
+    /**
+     * Geting the product list
+     * @param null $data
+     * @return array
+     */
     public function getProducts($data = null)
     {
         $sql = 'SELECT t.item_id, t.item_number, t.name, t.category, 
-            t.description, t.cost_price, t.unit_price, t.deleted  
-            FROM {tableName} t 
-            WHERE 1';
+            t.description, t.cost_price, t.unit_price, t.deleted';
+
+        if (isset($data['outlet_id'])) {
+            $sql .= ', '.$data['outlet_id'].' AS outlet_id';
+        }
+        $sql .= ' FROM {tableName} t WHERE 1';
 
         $params = [];
         if (is_array($data)) {
@@ -109,7 +117,48 @@ class RemoteModel extends \Model\BaseRemoteModel
 
         $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';
 
+        if (isset($data['limit'])) {
+            $sql .= ' LIMIT '. $data['limit'];
+        }
+
         $sql = str_replace(['{tableName}'], [$this->tableName], $sql);
+
+        $rows = R::getAll( $sql, $params );
+
+        return $rows;
+    }
+
+    public function getPriceListItems($data)
+    {
+        $sql = 'SELECT t.id, t.item_id AS item_id, p.name AS pricelist_name, p.code AS price_list_code,
+            t.unit_price AS pricelist_unit_price, i.name, i.item_number, i.category, i.cost_price, i.unit_price';
+
+        if (isset($data['outlet_id'])) {
+            $sql .= ', '.$data['outlet_id'].' AS outlet_id';
+        }
+        $sql .= ' FROM {tableName} t';
+        $sql .= ' LEFT JOIN {tablePrefix}price_lists p ON p.id = t.price_list_id';
+        $sql .= ' LEFT JOIN {tablePrefix}items i ON i.item_id = t.item_id';
+        $sql .= ' WHERE 1';
+
+        $params = [];
+        if (is_array($data)) {
+            $field = array();
+            foreach ($params as $attr => $val){
+                $field[] = $attr. '= :'. $attr;
+            }
+
+            if (count($field) > 0)
+                $sql .= ' AND '.implode(" AND ", $field);
+        }
+
+        $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';
+
+        if (isset($data['limit'])) {
+            $sql .= ' LIMIT '. $data['limit'];
+        }
+
+        $sql = str_replace(['{tableName}', '{tablePrefix}'], [$this->tableName, $this->_tbl_prefix], $sql);
 
         $rows = R::getAll( $sql, $params );
 

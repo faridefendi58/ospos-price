@@ -12,6 +12,19 @@
             </a>
             <div class="sub_panel">
                 <div class="side_inner">
+                    <h4 class="panel_heading panel_heading_first">Harga</h4>
+                    <ul>
+                        <li>
+                            <a href="{{ 'pos/pricelists/view' | link }}">
+                                <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Daftar Harga
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ 'pos/pricelists/create' | link }}">
+                                <span class="side_icon ion-ios7-plus-outline"></span> Daftar Harga Baru
+                            </a>
+                        </li>
+                    </ul>
                     <h4 class="panel_heading panel_heading_first">Produk</h4>
                     <ul>
                         <li>
@@ -20,7 +33,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ 'pos/products/view' | link }}#create-new">
+                            <a href="{{ 'pos/products/create' | link }}">
                                 <span class="side_icon ion-ios7-plus-outline"></span> Produk Baru
                             </a>
                         </li>
@@ -96,7 +109,7 @@
                                 <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Stok Per Outlet
                             </a>
                         </li>
-                        <li>
+                        <li class="hidden">
                             <a href="{{ 'pos/reports/activity' | link }}">
                                 <span class="side_icon ion-ios7-folder-outline ion-ios7-mon"></span>Aktifitas Outlet
                             </a>
