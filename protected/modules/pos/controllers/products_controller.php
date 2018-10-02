@@ -225,6 +225,7 @@ class ProductsController extends BaseController
         return $this->_container->module->render($response, 'products/update.html', [
             'model' => $model,
             'outlet' => $outlet,
+            'outlets' => $outlets,
             'smodel' => $smodel,
             'histories' => $histories
         ]);

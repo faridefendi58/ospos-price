@@ -40,6 +40,9 @@ Kelola Daftar Harga - {{ App.params.site_name }}
                                 <li class="active">
                                     <a data-toggle="tab" href="#list">Daftar Harga Barang</a>
                                 </li>
+                                <li>
+                                    <a data-toggle="tab" href="#upload">Upload Harga Barang (.xls)</a>
+                                </li>
                             </ul>
                             <div class="tab-content" id="tabs_content_a">
                                 <div id="list" class="tab-pane fade in active">
@@ -55,6 +58,9 @@ Kelola Daftar Harga - {{ App.params.site_name }}
                                         </tr>
                                         </thead>
                                     </table>
+                                </div>
+                                <div id="upload" class="tab-pane fade">
+                                    {% include 'pricelists/_upload.html' with {'outlet':outlet, 'pricelist':pricelist} %}
                                 </div>
                             </div>
                         </div>

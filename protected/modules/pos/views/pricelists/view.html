@@ -63,9 +63,9 @@ Daftar Harga - {{ App.params.site_name }}
                                                     <a href="{{ 'pos/pricelists/update' | link }}/{{ item.id }}?outlet={{ outlet.id }}" title="Ubah Price list">
                                                         <i class="fa fa-pencil"></i>
                                                     </a>
-                                                    <a href="{{ 'pos/pricelists/delete' | link }}/{{ item.id }}?outlet={{ outlet.id }}" onclick="return hapus(this);">
+                                                    {#<a href="{{ 'pos/pricelists/delete' | link }}/{{ item.id }}?outlet={{ outlet.id }}" onclick="return hapus(this);">
                                                         <i class="fa fa-trash-o"></i>
-                                                    </a>
+                                                    </a>#}
                                                     {% endif %}
                                                 </td>
                                             </tr>
@@ -101,7 +101,6 @@ Daftar Harga - {{ App.params.site_name }}
             $.ajax({
                 'url': url,
                 'type':'post',
-                //'dataType': 'json',
                 'success': function(data) {
                     if (data.status == 'success') {
                         $this.parent().parent().remove();
@@ -117,25 +116,6 @@ Daftar Harga - {{ App.params.site_name }}
             if ($('a[href="#'+hash+'"]').length > 0)
                 $('a[href="#'+hash+'"]').click();
         }
-        /*$('a[data-toggle="tab"]').click(function () {
-            var href = $(this).attr('href');
-            var id = $(this).attr('outlet-id');
-            if ($(href).find('tr.no-data').length > 0 || $(href).find('table').length <= 0) {
-                $.ajax({
-                    'beforeSend': function() { $(href).html('<span class="ion-loading-a" style="position:fixed;top:50%;left:50%;font-size: 100px;"></span>'); },
-                    'complete': function() {$(href).find('ion-loading-a').remove();},
-                    'url': "{{ 'pos/products/price-info' | link }}/"+ id,
-                    'type':'post',
-                    'data' : {'id':id},
-                    'success': function(data) {
-                        $(href).html(data);
-                        $(href).find('.dataTable').dataTable();
-                    }
-                });
-            }
-        });*/
-
-        //$('a[data-toggle="tab"]').first().trigger('click');
     });
 </script>
 {% endblock %}

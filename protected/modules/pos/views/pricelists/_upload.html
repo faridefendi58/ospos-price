@@ -1,0 +1,104 @@
+<form method="post" id="upload-form" class="mt20"
+      action="{{ 'pos/pricelists/excel-import' | link }}/{{ model.item_id }}?outlet={{ outlet.id }}"
+      enctype="multipart/form-data">
+
+    <div class="col-md-12 mb10 step1">
+        <p>Kolom bertanda <span class="red">*</span> tidak boleh dikosongi</p>
+    </div>
+
+    <div class="col-md-12 mb10 alert alert-info" style="display: none;"></div>
+    <div class="col-md-12 mb10 alert alert-warning" style="display: none;"></div>
+    <div class="col-md-12 mb10" id="preview" style="display: none;"></div>
+
+    <div class="col-md-6">
+        <div class="form-group step1">
+            <label for="file-path">Nama Dokumen <span class="text-danger">*</span></label>
+            <input type="file" id="file-path" name="Pricelists[file_path]" accept=".csv, .xls, .xlsx, .ods" required>
+        </div>
+
+        <input type="hidden" name="Pricelists[price_list_id]" value="{{ pricelist.id }}">
+        <input type="hidden" name="Pricelists[total_rows]" value="0" id="document-rows">
+        <div class="form-group">
+            <input type="submit" value="Upload Sekarang" class="btn btn-info" id="btn-submit-upload">
+            <button type="button" class="btn btn-default"
+                    id="repeat-upload"
+                    onclick="return repeatUpload(this);"
+                    style="display: none;">Import Dokumen Lainnya</button>
+        </div>
+    </div>
+</form>
+
+
+<script type="text/javascript">
+    $(function () {
+        $('#upload-form').submit(function () {
+            var url = $(this).attr('action');
+            var preview = $('#upload-form').find('#preview');
+            var alert_success = $('#upload-form').find('.alert-info');
+            var alert_warning = $('#upload-form').find('.alert-warning');
+            $.ajax({
+                'beforeSend': function() { preview.html('<span id="process-message" class="text-warning">Sedang dalam proses mengunggah dokumen ...</span>').show(); },
+                'complete': function() { $('#process-message').remove(); },
+                'url': url,
+                'type':'post',
+                'data': new FormData(this),
+                'processData': false,
+                'contentType': false,
+                'cache': false,
+                'success': function(data) {
+                    if (data.status == 'success') {
+                        alert_success.html(data.message);
+                        alert_success.show();
+                        alert_warning.hide();
+                        if (data.preview.length > 0) {
+                            preview.html(data.preview);
+                            preview.show();
+                        } else {
+                            preview.html('').hide();
+                            $('#process-message').remove();
+                        }
+
+                        $('#document-rows').val(data.rows.length);
+
+                        $('#table-preview').bootstrapTable({
+                            data: data.rows
+                        });
+
+                        $('#btn-submit-upload').val("Simpan Sekarang");
+                        $('.step1').hide();
+                        $('#repeat-upload').show();
+                        /*setTimeout(function () {
+                            if (data.updated == true) {
+                                window.location.reload(true);
+                            } else {
+                                alert_success.hide();
+                                alert_success.empty();
+                                $('#upload-form')[0].reset();
+                            }
+                        }, 5000);*/
+                    } else {
+                        alert_warning.html(data.message);
+                        alert_warning.show();
+                        alert_success.hide();
+                    }
+                }
+            });
+
+            return false;
+        });
+    });
+    function repeatUpload(dt) {
+        $(dt).hide();
+        $('#btn-submit-upload').val("Upload Sekarang");
+        $('.step1').show();
+        var alert_success = $('#upload-form').find('.alert-success');
+        alert_success.empty();
+        alert_success.hide();
+        var preview = $('#upload-form').find('#preview');
+        preview.empty();
+        preview.hide();
+        $('#file-path').val("");
+
+        return false;
+    }
+</script>

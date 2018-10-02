@@ -7,12 +7,24 @@ Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
 <div id="main_wrapper">
     <div class="page_bar clearfix">
         <div class="row">
-            <div class="col-sm-10">
+            <div class="col-sm-7">
                 <h1 class="page_title">Kelola Produk {{ model.name }} di <b class="text-info">{{ outlet.title }}</b></h1>
                 <p class="text-muted">Halaman pengelolaan data produk {{ model.name | lower }}</p>
             </div>
-            <div class="col-sm-2 text-right">
-                <a class="btn btn-default" href="{{ 'pos/products/view' | link }}">Daftar Produk</a>
+            <div class="col-sm-5 text-right">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <select id="outlet_from" name="PriceLists[outlet_id]" class="form-control select2" onchange="selectOutlet(this)">
+                            <option value="0">- Pilih Outlet -</option>
+                            {% for i, wh in outlets %}
+                            <option value="{{ wh.id }}" {% if outlet and outlet.id == wh.id %}selected="selected"{% endif %}>{{ wh.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <a class="btn btn-default" href="{{ 'pos/products/view' | link }}">Daftar Produk</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -56,5 +68,13 @@ Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
                 $('a[href="#'+hash+'"]').click();
         }
     });
+    function selectOutlet(dt) {
+        var loc = window.location;
+        var currentURL = loc.protocol + '//' + loc.host + loc.pathname;
+        if ($(dt).val() && parseInt($(dt).val()) > 0) {
+            window.location.href = currentURL +'?outlet='+$(dt).val();
+        }
+        return false;
+    }
 </script>
 {% endblock %}
