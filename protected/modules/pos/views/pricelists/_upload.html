@@ -1,5 +1,5 @@
 <form method="post" id="upload-form" class="mt20"
-      action="{{ 'pos/pricelists/excel-import' | link }}/{{ model.item_id }}?outlet={{ outlet.id }}"
+      action="{{ 'pos/pricelists/excel-import' | link }}/{{ pricelist.id }}?outlet={{ outlet.id }}"
       enctype="multipart/form-data">
 
     <div class="col-md-12 mb10 step1">
@@ -18,7 +18,7 @@
 
         <input type="hidden" name="Pricelists[price_list_id]" value="{{ pricelist.id }}">
         <input type="hidden" name="Pricelists[total_rows]" value="0" id="document-rows">
-        <div class="form-group">
+        <div class="form-group" id="btn-area">
             <input type="submit" value="Upload Sekarang" class="btn btn-info" id="btn-submit-upload">
             <button type="button" class="btn btn-default"
                     id="repeat-upload"
@@ -31,7 +31,8 @@
 
 <script type="text/javascript">
     $(function () {
-        $('#upload-form').submit(function () {
+        $('#upload-form').submit(function (e) {
+            e.preventDefault();
             var url = $(this).attr('action');
             var preview = $('#upload-form').find('#preview');
             var alert_success = $('#upload-form').find('.alert-info');
@@ -58,24 +59,22 @@
                             $('#process-message').remove();
                         }
 
-                        $('#document-rows').val(data.rows.length);
-
-                        $('#table-preview').bootstrapTable({
-                            data: data.rows
-                        });
-
-                        $('#btn-submit-upload').val("Simpan Sekarang");
-                        $('.step1').hide();
-                        $('#repeat-upload').show();
-                        /*setTimeout(function () {
-                            if (data.updated == true) {
+                        if (parseInt(data.reset_form) > 0) {
+                            $('#btn-area').hide();
+                            setTimeout(function () {
                                 window.location.reload(true);
-                            } else {
-                                alert_success.hide();
-                                alert_success.empty();
-                                $('#upload-form')[0].reset();
-                            }
-                        }, 5000);*/
+                            }, 3000);
+                        } else {
+                            $('#document-rows').val(data.rows.length);
+
+                            $('#table-preview').bootstrapTable({
+                                data: data.rows
+                            });
+
+                            $('#btn-submit-upload').val("Simpan Sekarang");
+                            $('.step1').hide();
+                            $('#repeat-upload').show();
+                        }
                     } else {
                         alert_warning.html(data.message);
                         alert_warning.show();

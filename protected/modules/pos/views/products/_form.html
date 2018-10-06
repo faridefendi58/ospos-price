@@ -62,7 +62,8 @@
 <script src="{{ 'js/jquery.maskMoney.min.js' | admin_asset_url }}"></script>
 <script type="text/javascript">
     $(function () {
-        $('#product-form').submit(function () {
+        $('#product-form').submit(function (e) {
+            e.preventDefault();
             var url = $(this).attr('action');
             $.ajax({
                 'url': url,

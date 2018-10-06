@@ -143,13 +143,10 @@ class RemoteModel extends \Model\BaseRemoteModel
 
         $params = [];
         if (is_array($data)) {
-            $field = array();
-            foreach ($params as $attr => $val){
-                $field[] = $attr. '= :'. $attr;
+            if (isset($data['price_list_id'])) {
+                $sql .= ' AND t.price_list_id =:price_list_id';
+                $params['price_list_id'] = $data['price_list_id'];
             }
-
-            if (count($field) > 0)
-                $sql .= ' AND '.implode(" AND ", $field);
         }
 
         $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';

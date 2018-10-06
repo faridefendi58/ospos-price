@@ -105,6 +105,21 @@ class BaseController
      */
     public function money_unformat($number, $thousand='.', $decimal=',')
     {
+        if (strpos($number, $decimal) !== false) {
+            $decimal_count = substr_count($number, $decimal);
+            if ($decimal_count > 1) {
+                $exps = explode($decimal, $number);
+                $num = '';
+                foreach ($exps as $i => $exp) {
+                    if ($i == $decimal_count)
+                        $num .= $decimal.$exp;
+                    else
+                        $num .= $exp;
+                }
+                $number = $num;
+            }
+        }
+
         if (strstr($number, $thousand))
             $number = str_replace($thousand, '', $number);
         if (strstr($number, $decimal))

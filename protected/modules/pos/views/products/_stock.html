@@ -55,7 +55,8 @@
 </div>
 
 <script type="text/javascript">
-    $('#stock-form').submit(function () {
+    $('#stock-form').submit(function (e) {
+        e.preventDefault();
         var url = $(this).attr('action');
         $.ajax({
             'url': url,
