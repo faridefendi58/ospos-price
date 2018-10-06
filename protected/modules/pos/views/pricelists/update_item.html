@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block pagetitle %}
+Ubah Harga untuk {{ price_list.name }}- {{ App.params.site_name }}
+{% endblock %}
+
+{% block content %}
+<div id="main_wrapper">
+    <div class="page_bar clearfix">
+        <div class="row">
+            <div class="col-sm-10">
+                <h1 class="page_title">Ubah Harga <b>{{ item.name }}</b> di daftar harga untuk <b>{{ price_list.name }}</b></h1>
+                <p class="text-muted">Halaman ubah harga untuk price list</p>
+            </div>
+            <div class="col-sm-2 text-right">
+                <a class="btn btn-default" href="{{ 'pos/pricelists/update' | link }}/{{ price_list.id }}?outlet={{ outlet.id }}">Daftar Harga</a>
+            </div>
+        </div>
+    </div>
+    <div class="page_content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <form method="post" id="pricelist-form" class="mt20" action="{{ 'pos/pricelists/update-item' | link }}/{{ price_list_item.item_id }}?outlet={{ outlet.id }}">
+                                {% if updated %}
+                                <div class="alert alert-success">
+                                    Data Anda telah berhasil diubah.
+                                </div>
+                                {% endif %}
+                                <div class="col-md-12 mb10">
+                                    <p>Kolom bertanda <span class="red">*</span> tidak boleh dikosongi</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="name">Nama Produk <span class="text-danger">*</span></label>
+                                        <input type="text" id="name" name="PricelistItems[name]" class="form-control" value="{{ item.name }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="unit-price">Unit Price <span class="text-danger">*</span></label>
+                                        <input type="text" id="unit-price" name="PricelistItems[unit_price]" class="form-control mask" {% if price_list_item.unit_price %}value="{{ price_list_item.unit_price | number_format(2, ',', '.') }}"{% endif %} required>
+                                    </div>
+                                    <input type="hidden" name="PricelistItems[id]" value="{{ price_list_item.id }}">
+                                    <div class="form-group">
+                                        <input type="submit" value="Simpan" class="btn btn-info">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'partial/right_menu.html' %}
+{% endblock %}
+
+{% block endbodyjs %}
+<script src="{{ 'js/jquery.maskMoney.min.js' | admin_asset_url }}"></script>
+<script type="text/javascript">
+    $(function () {
+        $(".mask").maskMoney({prefix:'', allowNegative: false, thousands:'.', decimal:',', affixesStay: false});
+    });
+</script>
+{% endblock %}

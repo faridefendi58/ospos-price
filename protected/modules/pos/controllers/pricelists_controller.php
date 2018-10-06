@@ -19,6 +19,7 @@ class PricelistsController extends BaseController
         $app->map(['GET', 'POST'], '/update/[{id}]', [$this, 'update']);
         $app->map(['GET', 'POST'], '/price-list-data/[{id}]', [$this, 'price_list_data']);
         $app->map(['POST'], '/excel-import/[{id}]', [$this, 'exel_import']);
+        $app->map(['GET', 'POST'], '/update-item/[{id}]', [$this, 'update_item']);
     }
 
     public function accessRules()
@@ -35,7 +36,7 @@ class PricelistsController extends BaseController
                 'expression' => $this->hasAccess('pos/pricelists/read'),
             ],
             ['allow',
-                'actions' => ['update'],
+                'actions' => ['update', 'excel-import', 'update-item'],
                 'expression' => $this->hasAccess('pos/pricelists/update'),
             ],
             ['deny',
@@ -232,5 +233,51 @@ class PricelistsController extends BaseController
 
             return $response->withJson( $result, 201 );
         }
+    }
+
+    public function update_item($request, $response, $args)
+    {
+        $isAllowed = $this->isAllowed($request, $response, $args);
+        if ($isAllowed instanceof \Slim\Http\Response)
+            return $isAllowed;
+
+        if (!$isAllowed) {
+            return $this->notAllowedAction();
+        }
+
+        $outlet_id = $request->getParams()['outlet'];
+        $price_list_id = $args['id'];
+
+        $outlet = \Model\OutletsModel::model()->findByPk($outlet_id);
+        $li_model = new \Model\RemoteModel($outlet_id, 'price_list_items');
+        $price_list_item = $li_model->findByPk($price_list_id);
+        if (!$price_list_item instanceof \RedBeanPHP\OODBBean) {
+
+        }
+
+        $updated = false;
+        if (isset($_POST['PricelistItems'])) {
+            $price_list_item->unit_price = $this->money_unformat($_POST['PricelistItems']['unit_price']);
+            $price_list_item->updated_at = date("Y-m-d H:i:s");
+            $updated = $li_model->update($price_list_item, ['unit_price', 'updated_at']);
+        }
+
+        $pl_model = new \Model\RemoteModel($outlet_id, 'price_lists');
+        $price_list = $pl_model->findByPk($price_list_item->price_list_id);
+
+        $i_model = new \Model\RemoteModel($outlet_id, 'items', 'item_id');
+        $item = $i_model->findByPk($price_list_item->item_id);
+
+        return $this->_container->module->render(
+            $response,
+            'pricelists/update_item.html',
+            [
+                'outlet' => $outlet,
+                'price_list_item' => $price_list_item,
+                'price_list' => $price_list,
+                'item' => $item,
+                'updated' => $updated
+            ]
+        );
     }
 }
