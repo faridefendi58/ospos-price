@@ -17,6 +17,7 @@ class ReportsController extends BaseController
     {
         $app->map(['GET'], '/stock', [$this, 'stock']);
         $app->map(['GET'], '/activity', [$this, 'activity']);
+        $app->map(['GET', 'POST'], '/stock-info/[{id}]', [$this, 'stock_info']);
     }
 
     public function accessRules()
@@ -27,7 +28,7 @@ class ReportsController extends BaseController
                 'users'=> ['@'],
             ],
             ['allow',
-                'actions' => ['stock', 'activity'],
+                'actions' => ['stock'],
                 'expression' => $this->hasAccess('pos/reports/read'),
             ],
             ['deny',
@@ -45,34 +46,19 @@ class ReportsController extends BaseController
         if(!$isAllowed){
             return $this->notAllowedAction();
         }
-        
-        $model = new \Model\OutletsModel();
-        $outlets = $model->getData();
 
-        $stocks = []; $purchases = []; $params = []; $transfers = [];
-        if (isset($_GET['wh'])) {
-            $outlet = $model->model()->findByPk($_GET['wh']);
-            $psmodel = new \Model\ProductStocksModel();
+        $params = $request->getParams();
+        $data = ['date_start' => date("Y-m-01"), 'date_end' => date("Y-m-d")];
+        if (isset($params['start']))
+            $data['date_start'] = date("Y-m-d", $params['start']/1000);
+        if (isset($params['end']))
+            $data['date_end'] = date("Y-m-d", $params['end']/1000);
 
-            if (isset($_GET['start'])) {
-                $date_start = date("Y-m-d", $_GET['start']/1000);
-            } else {
-                $date_start = date("Y-m-").'01';
-            }
-
-            if (isset($_GET['end'])) {
-                $date_end = date("Y-m-d", $_GET['end']/1000);
-            } else {
-                $date_end = date("Y-m-d");
-            }
-
-            $params = [
-                'outlet_id' => $outlet->id,
-                'date_start' => $date_start,
-                'date_end' => $date_end
-            ];
-
-            $stocks = $psmodel->getQuery($params);
+        $outlets = \Model\OutletsModel::model()->findAll();
+        if (isset($params['outlet'])) {
+            $outlet = \Model\OutletsModel::model()->findByPk($params['outlet']);
+        } else {
+            $outlet = \Model\OutletsModel::model()->findByAttributes(['active' => 1]);
         }
 
         return $this->_container->module->render(
@@ -80,15 +66,14 @@ class ReportsController extends BaseController
             'reports/stock.html',
             [
                 'outlets' => $outlets,
-                'outlet' => isset($_GET['wh'])? $outlet : false,
-                'stocks' => $stocks,
+                'outlet' => $outlet
             ]
         );
     }
 
-    public function activity($request, $response, $args)
+    public function stock_info($request, $response, $args)
     {
-        $isAllowed = $this->isAllowed($request, $response);
+        $isAllowed = $this->isAllowed($request, $response, $args);
         if ($isAllowed instanceof \Slim\Http\Response)
             return $isAllowed;
 
@@ -96,60 +81,9 @@ class ReportsController extends BaseController
             return $this->notAllowedAction();
         }
 
-        $model = new \Model\OutletsModel();
-        $outlets = $model->getData();
+        $rmodel = new \Model\RemoteModel($args['id'], 'item_quantities', 'item_id');
+        $stocks = $rmodel->getItemStocks(['outlet_id' => $args['id']]);
 
-        $stocks = []; $purchases = []; $params = []; $transfers = [];
-        if (isset($_GET['wh'])) {
-            $outlet = $model->model()->findByPk($_GET['wh']);
-            $psmodel = new \Model\ProductStocksModel();
-
-            if (isset($_GET['start'])) {
-                $date_start = date("Y-m-d", $_GET['start']/1000);
-            } else {
-                $date_start = date("Y-m-").'01';
-            }
-
-            if (isset($_GET['end'])) {
-                $date_end = date("Y-m-d", $_GET['end']/1000);
-            } else {
-                $date_end = date("Y-m-d");
-            }
-
-            $params = [
-                'outlet_id' => $outlet->id,
-                'date_start' => $date_start,
-                'date_end' => $date_end
-            ];
-
-            $prmodel = new \Model\PurchaseReceiptsModel();
-            $params2 = array_merge($params, ['status'=>\Model\PurchaseReceiptsModel::STATUS_COMPLETED]);
-            $purchases = $prmodel->getQuery($params2);
-
-            $trmodel = new \Model\TransferReceiptsModel();
-            $params3 = array_merge($params, ['transfer_out'=>true]);
-            $transfers = $trmodel->getQuery($params3);
-
-            $timodel = new \Model\TransferIssuesModel();
-            $params4 = array_merge($params, ['outlet_from' => $outlet->id]);
-            $transfer_issues = $timodel->getData($params4);
-
-            $iimodel = new \Model\InventoryIssuesModel();
-            $inventory_issues = $iimodel->getData($params);
-        }
-
-        return $this->_container->module->render(
-            $response,
-            'reports/activity.html',
-            [
-                'outlets' => $outlets,
-                'outlet' => isset($_GET['wh'])? $outlet : false,
-                'purchases' => $purchases,
-                'params' => $params,
-                'transfers' => $transfers,
-                'transfer_issues' => $transfer_issues,
-                'inventory_issues' => $inventory_issues
-            ]
-        );
+        return $response->withJson($stocks, 201);
     }
 }

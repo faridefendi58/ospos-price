@@ -5,8 +5,35 @@ $app->get('/pos', function ($request, $response, $args) use ($user) {
         return $response->withRedirect('/pos/default/login');
     }
 
+    $params = $request->getParams();
+	$data = ['date_start' => date("Y-m-01"), 'date_end' => date("Y-m-d")];
+	if (isset($params['start']))
+        $data['date_start'] = date("Y-m-d", $params['start']/1000);
+    if (isset($params['end']))
+        $data['date_end'] = date("Y-m-d", $params['end']/1000);
+
+    $outlets = \Model\OutletsModel::model()->findAll();
+    if (isset($params['outlet'])) {
+        $outlet = \Model\OutletsModel::model()->findByPk($params['outlet']);
+    } else {
+        $outlet = \Model\OutletsModel::model()->findByAttributes(['active' => 1]);
+    }
+
+    $rmodel = new \Model\RemoteModel($outlet->id, 'sales_items', 'sale_id');
+    $revenue = [ 'name' => $outlet->name, 'data' => $rmodel->getRevenue($data) ];
+
+    $smodel = new \Model\RemoteModel($outlet->id, 'sales', 'sale_id');
+    $tot_transaction = $smodel->getTotalTransaction($data);
+    $transactions = $smodel->getTransactionItems(array_merge($data, ['limit' => 10, 'product_only' => true]));
+
 	return $this->module->render($response, 'default/index.html', [
+	    'params' => $data,
         'name' => $args['name'],
+        'revenue' => $revenue,
+        'tot_transaction' => $tot_transaction,
+        'transactions' => $transactions,
+        'outlets' => $outlets,
+        'outlet' => $outlet,
     ]);
 });
 

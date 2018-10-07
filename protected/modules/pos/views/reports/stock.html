@@ -4,7 +4,7 @@ Stok Produk Per Outlet - {{ App.params.site_name }}
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ 'lib/bootstrap-daterangepicker/daterangepicker-bs3.css' | admin_asset_url }}">
+<link href="{{ 'lib/bootstrap-table/bootstrap-table.min.css' | admin_asset_url }}" rel="stylesheet" media="screen">
 <div id="main_wrapper">
     <div class="page_bar clearfix">
         <div class="row">
@@ -46,7 +46,7 @@ Stok Produk Per Outlet - {{ App.params.site_name }}
                         <div class="panel-heading">Sisa Stok</div>
                         <div class="panel-body">
                             <div id="dt_basic_wrapper" class="dataTables_wrapper form-inline no-footer table-responsive mt20" role="grid">
-                                <table id="dt_basic" class="table table-striped dataTable" attr-sort="2" attr-sort-type="asc">
+                                {#<table id="dt_basic" class="table table-striped dataTable" attr-sort="2" attr-sort-type="asc">
                                     <thead>
                                     <tr>
                                         <th>No</th>
@@ -61,7 +61,7 @@ Stok Produk Per Outlet - {{ App.params.site_name }}
                                         <td><center>{{ i + 1 }}</center></td>
                                         <td>
                                             <a href="{{ 'pos/products/stock' | link }}/{{ stock.product_id }}?wh={{ outlet.id }}" title="Detail Product">
-                                                {{ stock.product_name }}
+                                                {{ stock.item_name }}
                                             </a>
                                         </td>
                                         <td>{{ stock.quantity }}</td>
@@ -77,6 +77,20 @@ Stok Produk Per Outlet - {{ App.params.site_name }}
                                     </tr>
                                     {% endfor %}
                                     </tbody>
+                                </table>#}
+                                <table
+                                        data-pagination="true"
+                                        data-search="true"
+                                        data-toggle="table"
+                                        data-url="{{ 'pos/reports/stock-info' | link }}/{{ outlet.id }}">
+                                    <thead>
+                                    <tr>
+                                        <th data-sortable="true" data-field="item_id" data-align="center">Item ID</th>
+                                        <th data-field="item_name">Item Name</th>
+                                        <th data-formatter="roundqty" data-field="quantity" data-align="center">Quantity</th>
+                                        <th data-formatter="TableActions" data-align="center">Action</th>
+                                    </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -87,12 +101,12 @@ Stok Produk Per Outlet - {{ App.params.site_name }}
     </div>
 </div>
 {% include 'partial/right_menu.html' %}
+<script src="{{ 'lib/bootstrap-table/bootstrap-table.min.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/bootstrap-table/locale/bootstrap-table-id-ID.min.js' | admin_asset_url }}"></script>
 {% endblock %}
 {% block endbodyjs %}
 <script src="{{ 'lib/bootstrap-daterangepicker/daterangepicker.js' | admin_asset_url }}"></script>
 <script src="{{ 'lib/moment-js/moment.min.js' | admin_asset_url }}"></script>
-<script src="{{ 'lib/DataTables/media/js/jquery.dataTables.min.js' | admin_asset_url }}"></script>
-<script src="{{ 'lib/DataTables/media/js/dataTables.bootstrap.js' | admin_asset_url }}"></script>
 <script type="text/javascript">
     $(function() {
         initDateRage();
@@ -130,9 +144,9 @@ Stok Produk Per Outlet - {{ App.params.site_name }}
     function setDateRange(start, end) {
         var loc = window.location;
         var currentURL = loc.protocol + '//' + loc.host + loc.pathname;
-        var wh = gup('wh', loc);
-        if (wh && wh.length > 0) {
-            window.location.href = currentURL+'?wh='+wh+'&start='+start+'&end='+end;
+        var outlet = gup('outlet', loc);
+        if (outlet && outlet.length > 0) {
+            window.location.href = currentURL+'?outlet='+outlet+'&start='+start+'&end='+end;
         } else {
             window.location.href = currentURL+'?start='+start+'&end='+end;
         }
@@ -162,11 +176,44 @@ Stok Produk Per Outlet - {{ App.params.site_name }}
             var start = gup('start', loc);
             var end = gup('end', loc);
             if (start && start.length >0 && end && end.length > 0)
-                window.location.href = currentURL+'?wh='+$(dt).val()+'&start='+start+'&end='+end;
+                window.location.href = currentURL+'?outlet='+$(dt).val()+'&start='+start+'&end='+end;
             else
-                window.location.href = currentURL+'?wh='+$(dt).val();
+                window.location.href = currentURL+'?outlet='+$(dt).val();
         }
         return false;
+    }
+    function TableActions (value, row, index) {
+        var outlet_id = row.outlet_id;
+        var item_id = row.item_id;
+        var update_url = "{{ 'pos/products/update' | link }}/"+ item_id +"?outlet="+ outlet_id;
+        $action = [
+            '<a href="'+ update_url +'" title="Ubah Outlet"><i class="fa fa-pencil"></i></a> '
+        ].join('');
+
+        return $action;
+    }
+    function roundqty (data) {
+        var decimalCount = 0, decimal = ",", thousands = ".";
+        var total = 0;
+
+        if (data.length > 0) {
+
+            try {
+                decimalCount = Math.abs(decimalCount);
+                decimalCount = isNaN(decimalCount) ? 0 : decimalCount;
+
+                const negativeSign = data < 0 ? "-" : "";
+
+                var i = parseInt(data = Math.abs(Number(data) || 0).toFixed(decimalCount)).toString();
+                var j = (i.length > 3) ? i.length % 3 : 0;
+
+                return negativeSign + (j ? i.substr(0, j) + thousands : '') + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousands) + (decimalCount ? decimal + Math.abs(data - i).toFixed(decimalCount).slice(2) : "");
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        return '';
     }
 </script>
 {% endblock %}

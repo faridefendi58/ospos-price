@@ -9,15 +9,23 @@ Dashboard - {{ App.name }}
 <div id="main_wrapper">
     <div class="page_bar clearfix">
         <div class="row">
-            <div class="col-sm-8">
+            <div class="col-sm-6">
                 <h1 class="page_title">Dashboard</h1>
                 <p class="text-muted">Selamat datang di {{ App.params.site_name }}. Anda dapat menggunakan data berikut untuk melihat efektifitas halaman website Anda.</p>
             </div>
-            <div class="col-sm-4 text-right">
+            <div class="col-sm-3">
+                <select id="outlet_from" name="Reports[outlet_id]" class="form-control select2" onchange="selectWH(this)">
+                    <option value="0">- Pilih Outlet -</option>
+                    {% for i, wh in outlets %}
+                    <option value="{{ wh.id }}" {% if outlet and outlet.id == wh.id %}selected="selected"{% endif %}>{{ wh.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-3 text-right">
                 <div id="reportrange" class="btn">
                     <i class="fa fa-calendar"></i>
-                    {% if params.date_from %}
-                    <span>{{ params.date_from | date("M d, Y") }} - {{ params.date_to | date("M d, Y") }}</span> <b class="caret"></b>
+                    {% if params.date_start %}
+                    <span>{{ params.date_start | date("M d, Y") }} - {{ params.date_end | date("M d, Y") }}</span> <b class="caret"></b>
                     {% else %}
                     <span>{{ "now" | date("M d, Y") }} - {{ "now" | date("M d, Y") }}</span> <b class="caret"></b>
                     {% endif %}
@@ -28,37 +36,41 @@ Dashboard - {{ App.name }}
     <div class="page_content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-lg-5">
+                <div class="col-lg-6">
                     <div class="panel panel-default">
-                        <div class="panel-heading">Net revenue and visits</div>
+                        <div class="panel-heading">Net revenue</div>
                         <div class="panel-body">
                             <div id="report_revenue_visits" class="chart" style="height:300px;width:100%"></div>
                             <script>
-                                data_visits = [
+                                /*data_visits = [
                                     [1391814000000,1240],
-                                    [1391900400000,1140],
-                                    [1391986800000,480],
-                                    [1392073200000,630],
-                                    [1392159600000,950],
-                                    [1392246000000,590],
-                                    [1392332400000,820],
-                                    [1392418800000,540],
-                                    [1392505200000,500]
-                                ];
-                                data_revenue = [
-                                    [1391814000000,12451],
-                                    [1391900400000,10271],
-                                    [1391986800000,8457],
-                                    [1392073200000,11951],
-                                    [1392159600000,7587],
-                                    [1392246000000,15367],
-                                    [1392332400000,12548],
-                                    [1392418800000,10491],
-                                    [1392505200000,9531]
-                                ];
+                                    [1391900400000,1140]
+                                ];*/
+                                var arr_rev = [];
+                                var rev_data = {
+                                    label: "Revenue",
+                                    data: JSON.parse('{{ revenue.data | json_encode }}'),
+                                    points: {fillColor: '#fff'}
+                                };
+                                arr_rev.push(rev_data);
                             </script>
                         </div>
                     </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">How many orders?</div>
+                        <div class="panel-body">
+                            <div class="peity_stat clearfix">
+                                <div class="pull-left">
+                                    <h3 class="peity_text">{{ tot_transaction.total }} <small>({{ tot_transaction.detail[4].count | default(0) }} retur)</small></h3>
+                                </div>
+                                <div class="peity_holder pull-right">
+                                    <span class="peity_line"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
                     <div class="panel panel-default">
                         <div class="panel-heading">Best sellers (top 10)</div>
                         <div class="panel-body panel_body_a">
@@ -70,144 +82,12 @@ Dashboard - {{ App.name }}
                                 </tr>
                                 </thead>
                                 <tbody>
+                                {% for t, trans in transactions %}
                                 <tr>
-                                    <td>Amet rerum illo.</td>
-                                    <td>$22,742.00</td>
+                                    <td>{{ trans.item_name }}</td>
+                                    <td style="text-align: right;">{{ trans.product_revenue | number_format(2, ',', '.') }}</td>
                                 </tr>
-                                <tr>
-                                    <td>Illum nobis.</td>
-                                    <td>$18,421.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Quibusdam autem voluptatibus.</td>
-                                    <td>$15,823.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Qui nihil qui.</td>
-                                    <td>$10,967.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Quia dicta quis.</td>
-                                    <td>$6,071.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Veritatis vero maxime.</td>
-                                    <td>$3,233.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Rerum sit hic.</td>
-                                    <td>$2,100.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Perspiciatis nam.</td>
-                                    <td>$1,083.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Explicabo eveniet reiciendis.</td>
-                                    <td>$641.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Sapiente vel omnis.</td>
-                                    <td>$583.00</td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">How many visitors?</div>
-                        <div class="panel-body">
-                            <div class="peity_stat clearfix">
-                                <div class="pull-left">
-                                    <h3 class="peity_text">12 681 <small>(11 398 unique)</small></h3>
-                                </div>
-                                <div class="peity_holder pull-right">
-                                    <span class="peity_line">640,928,1281,727,1401,810,1085</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">How many orders?</div>
-                        <div class="panel-body">
-                            <div class="peity_stat clearfix">
-                                <div class="pull-left">
-                                    <h3 class="peity_text">827 <small>(725 completed)</small></h3>
-                                </div>
-                                <div class="peity_holder pull-right">
-                                    <span class="peity_line">143,186,310,285,274,350,169</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">Source of revenue (top 3)</div>
-                        <div class="panel-body">
-                            <div id="report_revenue_sources" class="chart" style="height:300px;width:100%">
-                                <script>
-                                    data_revenue_sources = [
-                                        { label: "Direct", data: 15486, color: '#3498db' },
-                                        { label: "google.com", data: 4785, color: '#e74c3c' },
-                                        { label: "Other", data: 2173, color: '#27ae60' }
-                                    ];
-                                </script>
-                            </div>
-                            <div id="report_revenue_sources_legend"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">Revenue per day of the week</div>
-                        <div class="panel-body">
-                            <div id="report_revenue_per_day" class="chart" style="height:200px;width:100%">
-                                <script>
-                                    data_revenue_day = [
-                                        [0,1240],
-                                        [1,1140],
-                                        [2,480],
-                                        [3,630],
-                                        [4,950],
-                                        [5,590],
-                                        [6,820]
-                                    ];
-                                </script>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">Where do your customers live? (top 5)</div>
-                        <div class="panel-body panel_body_a">
-                            <table class="table table-hover">
-                                <thead>
-                                <tr>
-                                    <th>Country/Teritory</th>
-                                    <th>Unique Visits</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>USA</td>
-                                    <td>2 312</td>
-                                </tr>
-                                <tr>
-                                    <td>Brazil</td>
-                                    <td>1 745</td>
-                                </tr>
-                                <tr>
-                                    <td>India</td>
-                                    <td>1 237</td>
-                                </tr>
-                                <tr>
-                                    <td>China</td>
-                                    <td>842</td>
-                                </tr>
-                                <tr>
-                                    <td>Turkey</td>
-                                    <td>531</td>
-                                </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -241,7 +121,6 @@ Dashboard - {{ App.name }}
         //charts
         tisa_report_chart.revenue_visits();
         tisa_report_chart.revenue_sources();
-        tisa_report_chart.revenue_per_day();
         initDateRage();
     });
     tisa_nvd3_charts = {
@@ -342,7 +221,11 @@ Dashboard - {{ App.name }}
     function setDateRange(start, end) {
         var loc = window.location;
         var currentURL = loc.protocol + '//' + loc.host + loc.pathname;
-        window.location.href = currentURL+'?start='+start+'&end='+end;
+        var outlet = gup('outlet', loc);
+        if (outlet && outlet.length >0)
+            window.location.href = currentURL+'?outlet='+outlet+'&start='+start+'&end='+end;
+        else
+            window.location.href = currentURL+'?start='+start+'&end='+end;
     }
     // charts
     tisa_report_chart = {
@@ -411,16 +294,17 @@ Dashboard - {{ App.name }}
                     shadowSize: 0
                 };
 
-                $.plot(chart_placeholder,[{
-                    label: "Visits",
+                /*$.plot(chart_placeholder,[{
+                    label: "Revenue 1",
                     data: data_visits,
                     points: {fillColor: '#fff'}
                 },{
                     label: "Product Revenue",
-                    data: data_revenue,
+                    data: data_visits,
                     points: {fillColor: '#fff'},
                     yaxis: 2
-                }],options);
+                }],options);*/
+                $.plot(chart_placeholder, arr_rev, options);
 
             }
         },
@@ -449,67 +333,28 @@ Dashboard - {{ App.name }}
                     }
                 });
             }
-        },
-        revenue_per_day: function() {
-            if ($('#report_revenue_per_day').length) {
-
-                function dolarFormatter(v, axis) {
-                    return "$"+v.toFixed(axis.tickDecimals) ;
-                }
-
-                var data = [
-                    {
-                        data: data_revenue_day,
-                        color: '#16a085',
-                        label:'Revenue per day',
-                        bars: {
-                            show: true,
-                            align:'center',
-                            barWidth:0.3,
-                            fill: 1
-                        }
-                    }
-                ];
-
-                $.plot('#report_revenue_per_day', data, {
-                    grid: {
-                        clickable: true,
-                        hoverable: true,
-                        autoHighlight: true,
-                        backgroundColor: null,
-                        borderWidth: 0,
-                        color: "#666",
-                        labelMargin: 10,
-                        axisMargin: 0,
-                        mouseActiveRadius: 10,
-                        minBorderMargin: 5
-                    },
-                    yaxis: {
-                        min: 0,
-                        tickFormatter: dolarFormatter
-                    },
-                    xaxis: {
-                        ticks: [[0,'Mon'],[1,'Tue'],[2,'Wed'],[3,'Thu'],[4,'Fri'],[5,'Sat'],[6,'Sun']],
-                        autoscaleMargin: .10 // allow space left and right
-                    },
-                    tooltip: true,
-                    tooltipOpts: {
-                        content: function(label, xval, yval, flotItem) {
-                            var week_day = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-                            return '$'+yval+'.00 <small class="text-muted">'+week_day[xval]+'</small>';
-                        },
-                        shifts: {
-                            x: 20,
-                            y: 0
-                        },
-                        defaultTheme: false
-                    },
-                    legend: {
-                        show: false
-                    }
-                });
-            }
         }
+    }
+    function selectWH(dt) {
+        var loc = window.location;
+        var currentURL = loc.protocol + '//' + loc.host + loc.pathname;
+        if ($(dt).val() && parseInt($(dt).val()) > 0) {
+            var start = gup('start', loc);
+            var end = gup('end', loc);
+            if (start && start.length >0 && end && end.length > 0)
+                window.location.href = currentURL+'?outlet='+$(dt).val()+'&start='+start+'&end='+end;
+            else
+                window.location.href = currentURL+'?outlet='+$(dt).val();
+        }
+        return false;
+    }
+    function gup( name, url ) {
+        if (!url) url = location.href;
+        name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+        var regexS = "[\\?&]"+name+"=([^&#]*)";
+        var regex = new RegExp( regexS );
+        var results = regex.exec( url );
+        return results == null ? null : results[1];
     }
 </script>
 {% endblock %}
