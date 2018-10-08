@@ -20,11 +20,11 @@
         </div>
         <div class="form-group">
             <label for="cost_price">Cost Price <span class="text-danger">*</span></label>
-            <input type="text" id="cost_price" name="Products[cost_price]" class="form-control mask" {% if model.cost_price %}value="{{ model.cost_price | number_format(2, ',', '.') }}"{% endif %} required>
+            <input type="text" id="cost_price" name="Products[cost_price]" class="form-control mask" {% if model.cost_price %}value="{{ model.cost_price | number_format(2, ',', '.') }}"{% endif %}>
         </div>
         <div class="form-group">
             <label for="unit-price">Unit Price <span class="text-danger">*</span></label>
-            <input type="text" id="unit-price" name="Products[unit_price]" class="form-control mask" {% if model.unit_price %}value="{{ model.unit_price | number_format(2, ',', '.') }}"{% endif %} required>
+            <input type="text" id="unit-price" name="Products[unit_price]" class="form-control mask" {% if model.unit_price %}value="{{ model.unit_price | number_format(2, ',', '.') }}"{% endif %}>
         </div>
     </div>
     <div class="col-md-6">
@@ -74,15 +74,12 @@
                         var alert_success = $('#product-form').find('.alert-success');
                         alert_success.html(data.message);
                         alert_success.show();
+                        $('#product-form')[0].reset();
                         setTimeout(function () {
-                            if (data.updated == true) {
-                                window.location.reload(true);
-                            } else {
-                                alert_success.hide();
-                                alert_success.empty();
-                                $('#product-form')[0].reset();
-                            }
-                        }, 5000);
+                            alert_success.hide();
+                            alert_success.empty();
+                            window.location.reload(true);
+                        }, 2000);
                     }
                 }
             });

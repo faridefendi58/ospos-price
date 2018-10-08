@@ -187,8 +187,9 @@ class ProductsController extends BaseController
             $model->cost_price = $_POST['Products']['cost_price'];
             $model->unit_price = $_POST['Products']['unit_price'];
             $model->description = $_POST['Products']['description'];
+            $item_model3 = \Model\RemoteModel::model($outlet_id, 'items', 'item_id');
 
-            $update = $item_model->update($model, false, ['item_number', 'name', 'cost_price', 'unit_price', 'description']);
+            $update = $item_model3->update($model, false, ['item_number', 'name', 'cost_price', 'unit_price', 'description']);
             if ($update) {
                 if (isset($_POST['Products']['update_others'])) {
                     foreach ($outlets as $o => $ot) {
