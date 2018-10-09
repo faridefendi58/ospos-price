@@ -4,7 +4,7 @@ Kelola Daftar Harga - {{ App.params.site_name }}
 {% endblock %}
 
 {% block content %}
-<link href="{{ 'lib/bootstrap-table/bootstrap-table.min.css' | admin_asset_url }}" rel="stylesheet" media="screen">
+<link href="{{ 'lib/bootstrap-table/dist/bootstrap-table.min.css' | admin_asset_url }}" rel="stylesheet" media="screen">
 <!-- main content -->
 <div id="main_wrapper">
     <div class="page_bar clearfix">
@@ -46,7 +46,13 @@ Kelola Daftar Harga - {{ App.params.site_name }}
                             </ul>
                             <div class="tab-content" id="tabs_content_a">
                                 <div id="list" class="tab-pane fade in active">
-                                    <table data-pagination="true" data-search="true" data-toggle="table" data-url="{{ 'pos/pricelists/price-list-data' | link }}/{{ pricelist.id }}?outlet={{ outlet.id }}">
+                                    <table data-show-export="true"
+                                           data-page-list="ALL"
+                                           data-show-pagination-switch="true"
+                                           data-pagination="true"
+                                           data-search="true"
+                                           data-toggle="table"
+                                           data-url="{{ 'pos/pricelists/price-list-data' | link }}/{{ pricelist.id }}?outlet={{ outlet.id }}">
                                         <thead>
                                         <tr>
                                             <th data-sortable="true" data-field="item_id">Item ID</th>
@@ -71,13 +77,16 @@ Kelola Daftar Harga - {{ App.params.site_name }}
     </div>
 </div>
 {% include 'partial/right_menu.html' %}
-<script src="{{ 'lib/bootstrap-table/bootstrap-table.min.js' | admin_asset_url }}"></script>
-<script src="{{ 'lib/bootstrap-table/locale/bootstrap-table-en-us.min.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/bootstrap-table/src/bootstrap-table.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/bootstrap-table/dist/extensions/export/bootstrap-table-export.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/bootstrap-table/dist/extensions/mobile/bootstrap-table-mobile.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/bootstrap-table/dist/extensions/sticky-header/bootstrap-table-sticky-header.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/bootstrap-table/dist/locale/bootstrap-table-id-ID.min.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/file-saver.js/FileSaver.js' | admin_asset_url }}" type="text/javascript"></script>
+<script src="{{ 'lib/tableExport.jquery.plugin/tableExport.min.js' | admin_asset_url }}"></script>
 
 {% endblock %}
 {% block endbodyjs %}
-{#<script src="{{ 'lib/DataTables/media/js/jquery.dataTables.min.js' | admin_asset_url }}"></script>
-<script src="{{ 'lib/DataTables/media/js/dataTables.bootstrap.js' | admin_asset_url }}"></script>#}
 <script type="text/javascript">
     function hapus(data) {
         if (confirm('Anda yakin ingin menghapus item ini ?')) {
