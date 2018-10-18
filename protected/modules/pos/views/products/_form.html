@@ -126,6 +126,13 @@
             var prc_money = prc.format(2, 3, '.', ',');
             $(this).parent().parent().parent().find('.the-price').val(prc_money);
         });
+        $('#cost_price').keyup(function () {
+            var price = parseInt($('#cost_price').val());
+            if (price > 0) {
+                var price = price.format(2, 3, '.', ',');
+                $('.the-price').val(price);
+            }
+        });
     });
     /**
      * Number.prototype.format(n, x, s, c)

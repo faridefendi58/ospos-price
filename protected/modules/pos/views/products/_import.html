@@ -1,5 +1,6 @@
+<link href="{{ 'lib/bootstrap-table/dist/bootstrap-table.min.css' | admin_asset_url }}" rel="stylesheet" media="screen">
 <form method="post" id="upload-form" class="mt20"
-      action="{{ 'pos/products/excel-import' | link }}"
+      action="{{ 'pos/products/excel-import' | link }}?outlet={{ outlets[0].id }}"
       enctype="multipart/form-data">
 
     <div class="col-md-12 mb10 step1">
@@ -28,6 +29,8 @@
     </div>
 </form>
 
+<script src="{{ 'lib/bootstrap-table/src/bootstrap-table.js' | admin_asset_url }}"></script>
+<script src="{{ 'lib/bootstrap-table/dist/locale/bootstrap-table-id-ID.min.js' | admin_asset_url }}"></script>
 
 <script type="text/javascript">
     $(function () {
@@ -97,6 +100,7 @@
         preview.empty();
         preview.hide();
         $('#file-path').val("");
+        $('#document-rows').val("0");
 
         return false;
     }

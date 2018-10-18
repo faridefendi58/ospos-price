@@ -24,6 +24,7 @@ class ProductsController extends BaseController
         $app->map(['GET', 'POST'], '/price-info/[{id}]', [$this, 'price_info']);
         $app->map(['GET', 'POST'], '/price-info-detail/[{id}]', [$this, 'price_info_detail']);
         $app->map(['POST'], '/add-stock/[{id}]', [$this, 'add_stock']);
+        $app->map(['POST'], '/excel-import', [$this, 'excel_import']);
     }
 
     public function accessRules()
@@ -551,5 +552,201 @@ class ProductsController extends BaseController
                 'outlet' => $outlet
             ]
         );
+    }
+
+    public function excel_import($request, $response, $args)
+    {
+        $isAllowed = $this->isAllowed($request, $response, $args);
+        if ($isAllowed instanceof \Slim\Http\Response)
+            return $isAllowed;
+
+        if(!$isAllowed){
+            return $this->notAllowedAction();
+        }
+
+        $result = ['status' => 'failed', 'preview' => '', 'reset_form' => 0];
+
+        $uploadedFiles = $request->getUploadedFiles();
+        if (isset($uploadedFiles['Pricelists'])) {
+            $file = $uploadedFiles['Pricelists']['file_path'];
+            //getting file name = $file->getClientFilename()
+            $renderType = 'Xlsx';
+            if ($file->getClientMediaType() == 'application/vnd.oasis.opendocument.spreadsheet') {
+                $renderType = 'Ods';
+            } elseif ($file->getClientMediaType() == 'application/vnd.ms-excel') {
+                $renderType = 'Xls';
+            } elseif ($file->getClientMediaType() == 'text/csv') {
+                $renderType = 'Csv';
+            }
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($renderType);
+            $reader->setReadDataOnly(TRUE);
+            $spreadsheet = $reader->load($file->file);
+
+            $worksheet = $spreadsheet->getActiveSheet();
+
+            $worksheet = $spreadsheet->getActiveSheet();
+            $highestRow = $worksheet->getHighestRow();
+            $highestColumn = $worksheet->getHighestColumn();
+            $highestColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+
+            $table_header = '';
+            if ($_POST['Pricelists']['total_rows'] == 0) {
+                $table_header .= '<table id="table-preview" data-pagination="true" data-search="true"><thead>' . "\n";
+                $table_header .= '<tr>' . PHP_EOL;
+                for ($col = 1; $col <= $highestColumnIndex; ++$col) {
+                    $value = $worksheet->getCellByColumnAndRow($col, 1)->getValue();
+                    $table_header .= '<th data-field="'.$col.'">' . $value . '</th>' . PHP_EOL;
+                }
+                $table_header .= '</tr>' . PHP_EOL;
+                $table_header .= '</thead></table>' . PHP_EOL;
+            }
+
+            $rows = [];
+            $preview = '<table>' . "\n";
+            for ($row = 1; $row <= $highestRow; ++$row) {
+                $preview .= '<tr>' . PHP_EOL;
+                for ($col = 1; $col <= $highestColumnIndex; ++$col) {
+                    $value = $worksheet->getCellByColumnAndRow($col, $row)->getValue();
+                    $preview .= '<td>' . $value . '</td>' . PHP_EOL;
+                    if ($row > 1)
+                        $rows[$row][$col] = $value;
+                }
+                $preview .= '</tr>' . PHP_EOL;
+            }
+            $preview .= '</table>' . PHP_EOL;
+
+            if (count($rows) > 0) {
+                $result['status'] = 'success';
+                $result['message'] = "Ditemukan ".count($rows)." baris data pada dokumen ". $file->getClientFilename().
+                    ". Selanjutnya klik tombol <b>Simpan Sekarang</b> agar data dapat disimpan ke dalam database.";
+                if (!empty($table_header))
+                    $result['preview'] = $table_header;
+            } else {
+                $result['status'] = 'failed';
+                $result['message'] = "Tidak ditemukan data pada dokumen ". $file->getClientFilename() .".";
+            }
+            $result['reset_form'] = 0;
+
+            $result['rows'] = array_values($rows);
+            if ($_POST['Pricelists']['total_rows'] > 0) {
+                $outlet_id = $request->getParams()['outlet'];
+                $omodel = new \Model\OutletsModel();
+                $outlets = $omodel->getRows(['active' => 1]);
+
+                $i_model = new \Model\RemoteModel($outlet_id, 'items');
+
+                $save_execution = 0;
+                foreach ($result['rows'] as $i => $rdata) {
+                    if (!empty($rdata[1]) && $rdata[5] > 0) {
+                        $item = $i_model->findByAttributes(['item_number' => $rdata[1]]);
+                        // just save to all active outlet
+                        foreach ($outlets as $oi => $ot) {
+                            if ($item instanceof \RedBeanPHP\OODBBean) {
+                                try {
+                                    $this->save_the_price_list_items($rdata, $ot['id'], $item->item_id);
+                                    $save_execution = $save_execution + 1;
+                                } catch (Exception $e) {}
+                            } else { //create new items
+                                try {
+                                    $new_item_id = $this->save_the_items($rdata, $ot['id']);
+                                    if ($new_item_id > 0) {
+                                        $this->save_the_price_list_items($rdata, $ot['id'], $new_item_id);
+                                        $save_execution = $save_execution + 1;
+                                    }
+                                } catch (Exception $e) {}
+                            }
+                        }
+                    }
+                }
+                $result['status'] = ($save_execution>0)? 'success' : 'failed';
+                $result['message'] = $_POST['Pricelists']['total_rows'].' data obat berhasil disimpan';
+                $result['reset_form'] = 1;
+            }
+
+            return $response->withJson( $result, 201 );
+        }
+    }
+
+    private function save_the_price_list_items($data, $outlet_id, $product_id)
+    {
+        if (!empty($data[7])) {
+            $pl_model = \Model\RemoteModel::model($outlet_id, 'price_lists', 'id');
+            $hjd_model = $pl_model->findByAttributes(['code' => 'HJD']);
+            if ($hjd_model instanceof \RedBeanPHP\OODBBean) {
+                $pli_model = \Model\RemoteModel::model($outlet_id, 'price_list_items', 'id');
+                $hjdi_model = $pli_model->findByAttributes(['price_list_id' => $hjd_model->id, 'item_id' => $product_id]);
+                if ($hjdi_model instanceof \RedBeanPHP\OODBBean) {
+                    $hjdi_model->unit_price = $this->money_unformat($data[7]);
+                    $hjdi_model->updated_at = date("Y-m-d H:i:s");
+                    $update_hjdi = $pli_model->update($hjdi_model, false, ['unit_price', 'updated_at']);
+                } else {
+                    $new_pli_model = new \Model\RemoteModel($outlet_id, 'price_list_items', 'id' );
+                    $new_pli_model->price_list_id = $hjd_model->id;
+                    $new_pli_model->item_id = $product_id;
+                    $new_pli_model->unit_price = $this->money_unformat($data[7]);
+                    $new_pli_model->created_at = date("Y-m-d H:i:s");
+                    $new_pli_model->updated_at = date("Y-m-d H:i:s");
+
+                    $save_new_pli = $new_pli_model->save();
+                }
+            }
+        }
+        if (!empty($data[8])) {
+            $pl_model = \Model\RemoteModel::model($outlet_id, 'price_lists', 'id');
+            $hjd_model = $pl_model->findByAttributes(['code' => 'HJD']);
+            if ($hjd_model instanceof \RedBeanPHP\OODBBean) {
+                $pli_model = \Model\RemoteModel::model($outlet_id, 'price_list_items', 'id');
+                $hjdi_model = $pli_model->findByAttributes(['price_list_id' => $hjd_model->id, 'item_id' => $product_id]);
+                if ($hjdi_model instanceof \RedBeanPHP\OODBBean) {
+                    $hjdi_model->unit_price = $this->money_unformat($data[8]);
+                    $hjdi_model->updated_at = date("Y-m-d H:i:s");
+                    $update_hjdi = $pli_model->update($hjdi_model, false, ['unit_price', 'updated_at']);
+                } else {
+                    $new_pli_model = new \Model\RemoteModel($outlet_id, 'price_list_items', 'id' );
+                    $new_pli_model->price_list_id = $hjd_model->id;
+                    $new_pli_model->item_id = $product_id;
+                    $new_pli_model->unit_price = $this->money_unformat($data[8]);
+                    $new_pli_model->created_at = date("Y-m-d H:i:s");
+                    $new_pli_model->updated_at = date("Y-m-d H:i:s");
+
+                    $save_new_pli = $new_pli_model->save();
+                }
+            }
+        }
+    }
+
+    private function save_the_items($data, $outlet_id)
+    {
+        $item_model = new \Model\RemoteModel($outlet_id, 'items', 'item_id' );
+        $item_model->item_number = $data[1];
+        $item_model->name = $data[2];
+        $item_model->cost_price = $this->money_unformat($data[5]);
+        $item_model->unit_price = $this->money_unformat($data[6]);
+
+        $save = $item_model->save();
+        if ($save) {
+            $qty_model = new \Model\RemoteModel($outlet_id, 'item_quantities', 'item_id' );
+            $item_data = $item_model->findByAttributes(['item_number' => $data[1]]);
+            if ($data[3] > 0) {
+                $qty_model->item_id = $item_data['item_id'];
+                $qty_model->location_id = 1;
+                $qty_model->quantity = $data[3];
+                $save2 = $qty_model->save();
+                if ($save2) {
+                    $inv_model = new \Model\RemoteModel($outlet_id, 'inventory', 'trans_id' );
+                    $inv_model->trans_items = $item_data['item_id'];
+                    $inv_model->trans_user = 1;
+                    $inv_model->trans_date = date("Y-m-d H:i:s");
+                    $inv_model->trans_comment = 'Input dari integrator system.';
+                    $inv_model->trans_location = 1;
+                    $inv_model->trans_inventory = $data[3];
+                    $save3 = $inv_model->save();
+                }
+            }
+
+            return $item_data['item_id'];
+        }
+
+        return 0;
     }
 }

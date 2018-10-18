@@ -35,7 +35,7 @@ Tambah Data Obat - {{ App.params.site_name }}
                                     {% include 'products/_form.html' with {'model':model, 'hide_outlet':0} %}
                                 </div>
                                 <div id="excel" class="tab-pane fade">
-                                    {% include 'products/_import.html' with {'model':model, 'hide_outlet':0} %}
+                                    {% include 'products/_import.html' with {'outlets':outlets} %}
                                 </div>
                             </div>
                         </div>
