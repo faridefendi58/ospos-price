@@ -105,14 +105,8 @@ class RemoteModel extends \Model\BaseRemoteModel
         $sql .= ' FROM {tableName} t WHERE 1';
 
         $params = [];
-        if (is_array($data)) {
-            $field = array();
-            foreach ($params as $attr => $val){
-                $field[] = $attr. '= :'. $attr;
-            }
-
-            if (count($field) > 0)
-                $sql .= ' AND '.implode(" AND ", $field);
+        if (isset($data['deleted'])) {
+            $sql .= ' AND t.deleted = 0';
         }
 
         $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';
@@ -286,5 +280,45 @@ class RemoteModel extends \Model\BaseRemoteModel
         $rows = R::getAll( $sql, $params );
 
         return $rows;
+    }
+
+    public function getProductPrices($data = null)
+    {
+        $sql = 'SELECT t.item_id, t.unit_price, li.code, i.unit_price AS HJU';
+
+        $sql .= ' FROM {tableName} t';
+
+        $sql .= ' LEFT JOIN {tablePrefix}price_lists li ON li.id = t.price_list_id';
+        $sql .= ' LEFT JOIN {tablePrefix}items i ON i.item_id = t.item_id';
+
+        $sql .= ' WHERE 1';
+
+        $params = [];
+        if (isset($data['item_id'])) {
+            $sql .= ' AND t.item_id =:item_id';
+            $params['item_id'] = $data['item_id'];
+        }
+
+        $sql .= ' AND i.deleted = 0';
+
+        $sql .= ' ORDER BY t.'. $this->tablePk .' DESC';
+
+        if (isset($data['limit'])) {
+            $sql .= ' LIMIT '. $data['limit'];
+        }
+
+        $sql = str_replace(['{tableName}', '{tablePrefix}'], [$this->tableName, $this->_tbl_prefix], $sql);
+
+        $rows = R::getAll( $sql, $params );
+
+        $items = [];
+        if (count($rows) > 0) {
+            foreach ($rows as $i => $row) {
+                $items[$row['item_id']]['HJU'] = $row['HJU'];
+                $items[$row['item_id']][$row['code']] = $row['unit_price'];
+            }
+        }
+
+        return $items;
     }
 }

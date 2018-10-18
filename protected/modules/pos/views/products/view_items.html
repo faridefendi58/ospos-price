@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block pagetitle %}
-Harga Obat - {{ App.params.site_name }}
+Produk - {{ App.params.site_name }}
 {% endblock %}
 
 {% block content %}
@@ -11,7 +11,7 @@ Harga Obat - {{ App.params.site_name }}
         <div class="row">
             <div class="col-sm-10">
                 <h1 class="page_title">Daftar Harga Obat</h1>
-                <p class="text-muted">Kelola harga obat per Outlet</p>
+                <p class="text-muted">Kelola data harga obat</p>
             </div>
             <div class="col-sm-2 text-right">
                 <a class="btn btn-default" href="{{ 'pos/products/create' | link }}">Tambah Data Obat</a>
@@ -24,43 +24,26 @@ Harga Obat - {{ App.params.site_name }}
                 <div class="col-md-12">
                     <div class="panel panel-default">
                         <div class="panel-body">
-                            <ul class="nav nav-tabs main-tabs" id="tabs_a">
-                                {% set idx = 1 %}
-                                {% for i, outlet in outlets %}
-                                <li {% if i == 1 %}class="active"{% endif %}>
-                                    <a data-toggle="tab" href="#outlet-{{ idx }}" outlet-id="{{ outlet.id }}">{{ outlet.title }}</a>
-                                </li>
-                                {% set idx = idx + 1 %}
-                                {% endfor %}
-                            </ul>
-                            <div class="tab-content" id="tabs_content_a">
-                                {% set idx2 = 1 %}
-                                {% for j, outlet in outlets %}
-                                <div id="outlet-{{ idx2 }}" class="tab-pane fade {% if j == 1 %}in active{% endif %}">
-                                    <table
-                                            data-show-export="true"
-                                            data-pagination="true"
-                                            data-show-pagination-switch="true"
-                                            data-search="true"
-                                            data-toggle="table"
-                                            data-url="{{ 'pos/products/price-info-detail' | link }}/{{ outlet.id }}">
-                                        <thead>
-                                        <tr>
-                                            <th data-sortable="true" data-field="item_id" data-align="center">Item ID</th>
-                                            <th data-field="name">Nama Obat</th>
-                                            <th data-field="item_number" data-align="center">Barcode</th>
-                                            <th data-field="cost_price" data-formatter="moneyFormatter" data-align="right">Harga Beli</th>
-                                            <th data-field="unit_price" data-formatter="moneyFormatter" data-align="right">HJU</th>
-                                            <th data-field="HJD" data-formatter="moneyFormatter" data-align="right">HJD</th>
-                                            <th data-field="HJR" data-formatter="moneyFormatter" data-align="right">HJR</th>
-                                            <th data-formatter="TableActions" data-align="center">Action</th>
-                                        </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                                {% set idx2 = idx2 + 1 %}
-                                {% endfor %}
-                            </div>
+                            <table
+                                    data-show-export="true"
+                                    data-pagination="true"
+                                    data-show-pagination-switch="true"
+                                    data-search="true"
+                                    data-toggle="table"
+                                    data-url="{{ 'pos/products/price-info-detail' | link }}/{{ outlet.id }}">
+                                <thead>
+                                <tr>
+                                    <th data-sortable="true" data-field="item_id" data-align="center">Item ID</th>
+                                    <th data-field="name">Nama Obat</th>
+                                    <th data-field="item_number" data-align="center">Barcode</th>
+                                    <th data-field="cost_price" data-formatter="moneyFormatter" data-align="right">Harga Beli</th>
+                                    <th data-field="unit_price" data-formatter="moneyFormatter" data-align="right">HJU</th>
+                                    <th data-field="HJD" data-formatter="moneyFormatter" data-align="right">HJD</th>
+                                    <th data-field="HJR" data-formatter="moneyFormatter" data-align="right">HJR</th>
+                                    <th data-formatter="TableActions" data-align="center">Action</th>
+                                </tr>
+                                </thead>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -88,7 +71,6 @@ Harga Obat - {{ App.params.site_name }}
             $.ajax({
                 'url': url,
                 'type':'post',
-                //'dataType': 'json',
                 'success': function(data) {
                     if (data.status == 'success') {
                         $this.parent().parent().remove();
@@ -132,8 +114,8 @@ Harga Obat - {{ App.params.site_name }}
     function TableActions (value, row, index) {
         var outlet_id = row.outlet_id;
         var item_id = row.item_id;
-        var update_url = "{{ 'pos/products/update' | link }}/"+ item_id +"?outlet="+ outlet_id;
-        var delete_url = "{{ 'pos/products/delete' | link }}/"+ item_id +"?outlet="+ outlet_id;
+        var update_url = "{{ 'pos/products/update' | link }}/"+ item_id +"?outlet="+ outlet_id +"&hide_outlet=1";
+        var delete_url = "{{ 'pos/products/delete' | link }}/"+ item_id +"?outlet="+ outlet_id +"&hide_outlet=1";
         $action = [
             '<a href="'+ update_url +'" title="Ubah Outlet"><i class="fa fa-pencil"></i></a> ',
             '<a href="'+ delete_url +'" onclick="return hapus(this);"><i class="fa fa-trash-o"></i></a>'

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block pagetitle %}
-Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
+Kelola Obat - {{ model.name }} - {{ App.params.site_name }}
 {% endblock %}
 
 {% block content %}
@@ -8,11 +8,12 @@ Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
     <div class="page_bar clearfix">
         <div class="row">
             <div class="col-sm-7">
-                <h1 class="page_title">Kelola Produk {{ model.name }} di <b class="text-info">{{ outlet.title }}</b></h1>
+                <h1 class="page_title">Kelola Obat {{ model.name }} {% if not hide_outlet %}di <b class="text-info">{{ outlet.title }}</b>{% endif %}</h1>
                 <p class="text-muted">Halaman pengelolaan data produk {{ model.name | lower }}</p>
             </div>
             <div class="col-sm-5 text-right">
                 <div class="row">
+                    {% if not hide_outlet %}
                     <div class="col-sm-8">
                         <select id="outlet_from" name="PriceLists[outlet_id]" class="form-control select2" onchange="selectOutlet(this)">
                             <option value="0">- Pilih Outlet -</option>
@@ -22,8 +23,13 @@ Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
                         </select>
                     </div>
                     <div class="col-sm-2">
-                        <a class="btn btn-default" href="{{ 'pos/products/view' | link }}">Daftar Produk</a>
+                        <a class="btn btn-default" href="{{ 'pos/products/view' | link }}">Daftar Harga Obat</a>
                     </div>
+                    {% else %}
+                    <div class="col-sm-10">
+                        <a class="btn btn-default" href="{{ 'pos/products/view-items' | link }}">Daftar Harga Obat</a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -38,7 +44,7 @@ Kelola Produk - {{ model.name }} - {{ App.params.site_name }}
                                 <li class="active">
                                     <a data-toggle="tab" href="#update">Informasi Dasar</a>
                                 </li>
-                                <li>
+                                <li {% if hide_outlet %}class="hidden"{% endif %}>
                                     <a data-toggle="tab" href="#persediaan">Persediaan</a>
                                 </li>
                             </ul>

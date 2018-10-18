@@ -5,7 +5,7 @@
     </div>
     <div class="col-md-6">
         {% if outlets %}
-        <div class="form-group">
+        <div class="form-group hidden" id="outlet-container">
             <label for="reg_select">Outlet <span class="text-danger">*</span></label>
             <select id="reg_select" name="Products[outlet_id]" class="form-control">
                 {% for i, outlet in outlets %}
@@ -19,17 +19,41 @@
             <input type="text" id="name" name="Products[name]" class="form-control" {% if model.name %}value="{{ model.name }}"{% endif %} required>
         </div>
         <div class="form-group">
-            <label for="cost_price">Cost Price <span class="text-danger">*</span></label>
-            <input type="text" id="cost_price" name="Products[cost_price]" class="form-control mask" {% if model.cost_price %}value="{{ model.cost_price | number_format(2, ',', '.') }}"{% endif %}>
+            <label for="cost_price">Harga Beli <span class="text-danger">*</span></label>
+            <input type="text" id="cost_price" name="Products[cost_price]" class="form-control" {% if model.cost_price %}value="{{ model.cost_price | number_format(2, ',', '.') }}"{% endif %}>
         </div>
-        <div class="form-group">
-            <label for="unit-price">Unit Price <span class="text-danger">*</span></label>
+        <div class="form-group hidden">
+            <label for="unit-price">Harga Jual <span class="text-danger">*</span></label>
             <input type="text" id="unit-price" name="Products[unit_price]" class="form-control mask" {% if model.unit_price %}value="{{ model.unit_price | number_format(2, ',', '.') }}"{% endif %}>
         </div>
+        {% if prices %}
+        {% for pi,price in prices %}
+        <div class="form-group">
+            <label>{{ pi }}</label>
+            <div class="row">
+                <div class="col-md-4">
+                    {% if model.cost_price > 0 %}
+                        {% set percentage = (price - model.cost_price)/model.cost_price*100 %}
+                    {% else %}
+                        {% set percentage = 0.00 %}
+                    {% endif %}
+                    <div class="input-group">
+                        <input type="text" name="Products[{{ pi }}_percentage]" class="form-control percentage"
+                               value="{{ percentage | round(2) }}" aria-describedby="basic-addon2">
+                        <span class="input-group-addon" id="basic-addon2">%</span>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <input type="text" name="Products[{{ pi }}]" class="form-control mask the-price" value="{{ price | number_format(2, ',', '.') }}">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            <label for="barcode">Barcode <span class="text-danger">*</span></label>
+            <label for="barcode">Kode Barcode <span class="text-danger">*</span></label>
             <input type="text" id="barcode" name="Products[item_number]" class="form-control" {% if model.item_number %}value="{{ model.item_number }}"{% endif %} required>
         </div>
         {% if not model.item_id %}
@@ -43,11 +67,20 @@
             <textarea name="Products[description]" id="desc" cols="10" rows="2" class="form-control">{% if model and model.description %}{{ model.description }}{% endif %}</textarea>
         </div>
         {% if model.item_id %}
+        <div class="form-group {% if hide_outlet %}hidden{% endif %}">
+            <div class="checkbox">
+                <label>
+                    <input name="Products[update_others]" value="1" type="checkbox" checked>
+                    Update juga item ini untuk <b>Outlet</b> yang lainnya.
+                </label>
+            </div>
+        </div>
+        {% else %}
         <div class="form-group">
             <div class="checkbox">
                 <label>
-                    <input name="Products[update_others]" value="1" type="checkbox">
-                    Update juga item ini untuk <b>Outlet</b> yang lainnya.
+                    <input name="Products[create_others]" value="1" type="checkbox" checked>
+                    Simpan item ini untuk semua <b>Outlet</b>.
                 </label>
             </div>
         </div>
@@ -87,5 +120,25 @@
             return false;
         });
         $(".mask").maskMoney({prefix:'', allowNegative: false, thousands:'.', decimal:',', affixesStay: false});
+        $('.percentage').keyup(function (e) {
+            var cost_price = $('input[id="cost_price"]').val();
+            var prc = parseInt(cost_price) + ($(this).val()*1/100)*cost_price;
+            var prc_money = prc.format(2, 3, '.', ',');
+            $(this).parent().parent().parent().find('.the-price').val(prc_money);
+        });
     });
+    /**
+     * Number.prototype.format(n, x, s, c)
+     *
+     * @param integer n: length of decimal
+     * @param integer x: length of whole part
+     * @param mixed   s: sections delimiter
+     * @param mixed   c: decimal delimiter
+     */
+    Number.prototype.format = function(n, x, s, c) {
+        var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\D' : '$') + ')',
+            num = this.toFixed(Math.max(0, ~~n));
+
+        return (c ? num.replace('.', c) : num).replace(new RegExp(re, 'g'), '$&' + (s || ','));
+    };
 </script>
