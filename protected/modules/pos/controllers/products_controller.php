@@ -275,7 +275,7 @@ class ProductsController extends BaseController
             $item_model3 = \Model\RemoteModel::model($outlet_id, 'items', 'item_id');
 
             $update = $item_model3->update($model, false, ['item_number', 'name', 'cost_price', 'unit_price', 'description']);
-            if (!empty($model->name) && !empty($model->item_number) && !empty($model->cost_price)) {
+            if (!empty($model->name) && !empty($model->item_number) && ($model->cost_price>=0)) {
 
                 if (isset($_POST['Products']['update_others'])) {
                     foreach ($outlets as $o => $ot) {
@@ -350,7 +350,7 @@ class ProductsController extends BaseController
 
         if (isset($post['Products']['HJD']) || isset($post['Products']['HJR'])) {
             // also update the HJD and HJR
-            if (!empty($post['Products']['HJD'])) {
+            if ($post['Products']['HJD'] >= 0) {
                 $pl_model = \Model\RemoteModel::model($outlet_id, 'price_lists', 'id');
                 $hjd_model = $pl_model->findByAttributes(['code' => 'HJD']);
                 if ($hjd_model instanceof \RedBeanPHP\OODBBean) {
@@ -372,7 +372,7 @@ class ProductsController extends BaseController
                     }
                 }
             }
-            if (!empty($post['Products']['HJR'])) {
+            if ($post['Products']['HJR'] >= 0) {
                 $pl_model = \Model\RemoteModel::model($outlet_id, 'price_lists', 'id');
                 $hjr_model = $pl_model->findByAttributes(['code' => 'HJR']);
                 if ($hjr_model instanceof \RedBeanPHP\OODBBean) {

@@ -20,7 +20,7 @@
         </div>
         <div class="form-group">
             <label for="cost_price">Harga Beli <span class="text-danger">*</span></label>
-            <input type="text" id="cost_price" name="Products[cost_price]" class="form-control" {% if model.cost_price %}value="{{ model.cost_price | number_format(2, ',', '.') }}"{% endif %}>
+            <input type="text" id="cost_price" name="Products[cost_price]" class="form-control mask" {% if model.cost_price %}value="{{ model.cost_price | number_format(2, ',', '.') }}"{% endif %}>
         </div>
         <div class="form-group hidden">
             <label for="unit-price">Harga Jual <span class="text-danger">*</span></label>
@@ -34,6 +34,9 @@
                 <div class="col-md-4">
                     {% if model.cost_price > 0 %}
                         {% set percentage = (price - model.cost_price)/model.cost_price*100 %}
+                        {% if percentage <= 0 %}
+                            {% set percentage = 0.00 %}
+                        {% endif %}
                     {% else %}
                         {% set percentage = 0.00 %}
                     {% endif %}
@@ -121,16 +124,34 @@
         });
         $(".mask").maskMoney({prefix:'', allowNegative: false, thousands:'.', decimal:',', affixesStay: false});
         $('.percentage').keyup(function (e) {
-            var cost_price = $('input[id="cost_price"]').val();
+            var cost_price = moneyUnformat($('input[id="cost_price"]').val());
             var prc = parseInt(cost_price) + ($(this).val()*1/100)*cost_price;
             var prc_money = prc.format(2, 3, '.', ',');
             $(this).parent().parent().parent().find('.the-price').val(prc_money);
         });
+        /**
+         * open this method to automaticallt change the HJU, HJD, and HJR
         $('#cost_price').keyup(function () {
-            var price = parseInt($('#cost_price').val());
+            var price = moneyUnformat($('#cost_price').val());
+            var price = parseInt(price);
             if (price > 0) {
                 var price = price.format(2, 3, '.', ',');
                 $('.the-price').val(price);
+                $(this).parent().parent().find('.percentage').val(0);
+            }
+        });
+         */
+        $('.the-price').keyup(function () {
+            var the_price = moneyUnformat($(this).val());
+            var percentage = $(this).parent().parent().find('.percentage');
+            var cost_price = moneyUnformat($('input[id="cost_price"]').val());
+            if (parseInt(cost_price) > 0) {
+                var prc = (parseInt(the_price) - parseInt(cost_price)) / parseInt(cost_price) * 100;
+                if (prc <= 0) {
+                    percentage.val(0);
+                } else {
+                    percentage.val(prc);
+                }
             }
         });
     });
@@ -148,4 +169,11 @@
 
         return (c ? num.replace('.', c) : num).replace(new RegExp(re, 'g'), '$&' + (s || ','));
     };
+
+    function moneyUnformat(money_string) {
+        return money_string
+            .replace(/,/g , "__COMMA__") // Replace `,` by some unique string
+            .replace(/\./g, '')         // Replace `.` by `,`
+            .replace(/__COMMA__/g, '.');
+    }
 </script>
