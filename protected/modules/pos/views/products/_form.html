@@ -130,17 +130,26 @@
             $(this).parent().parent().parent().find('.the-price').val(prc_money);
         });
         /**
-         * open this method to automaticallt change the HJU, HJD, and HJR
+         * open this method to automatically change the HJU, HJD, and HJR
+         **/
         $('#cost_price').keyup(function () {
             var price = moneyUnformat($('#cost_price').val());
             var price = parseInt(price);
-            if (price > 0) {
-                var price = price.format(2, 3, '.', ',');
-                $('.the-price').val(price);
-                $(this).parent().parent().find('.percentage').val(0);
+            if (price >= 0) {
+                var perces = $(this).parent().parent().find('.percentage');
+                perces.each(function () {
+                    var price_item = price;
+                    if (parseInt($(this).val()) > 0) {
+                        var price_item = price + (parseInt($(this).val())*price/100);
+                    } else {
+                        $(this).val(0);
+                    }
+                    var price_item = price_item.format(2, 3, '.', ',');
+                    $(this).parent().parent().parent().find('.the-price').val(price_item);
+                });
             }
         });
-         */
+
         $('.the-price').keyup(function () {
             var the_price = moneyUnformat($(this).val());
             var percentage = $(this).parent().parent().find('.percentage');

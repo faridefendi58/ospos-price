@@ -88,8 +88,8 @@ class UsersController extends BaseController
             $model->name = $_POST['Admin']['name'];
             $model->username = $_POST['Admin']['username'];
             $model->salt = md5(uniqid());
-            $model->password = $_POST['Admin']['password'];
-            //$model->password = $model->hasPassword($_POST['Admin']['password'], $model->salt);
+            //$model->password = $_POST['Admin']['password'];
+            $model->password = $model->hasPassword($_POST['Admin']['password'], $model->salt);
             $model->username = $_POST['Admin']['username'];
             $model->email = $_POST['Admin']['email'];
             $model->group_id = $_POST['Admin']['group_id'];
@@ -97,9 +97,9 @@ class UsersController extends BaseController
             $model->created_at = date('Y-m-d H:i:s');
             $create = \Model\AdminModel::model()->save($model);
             if ($create) {
-                $bean = \Model\AdminModel::model()->findByAttributes(['username'=>$model->username]);
+                /*$bean = \Model\AdminModel::model()->findByAttributes(['username'=>$model->username]);
                 $bean->password = $model->hasPassword($model->password, $model->salt);
-                $update = \Model\AdminModel::model()->update($bean, false);
+                $update = \Model\AdminModel::model()->update($bean, false);*/
 
                 $message = 'Data Anda telah berhasil disimpan.';
                 $success = true;
