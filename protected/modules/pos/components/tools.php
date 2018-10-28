@@ -67,9 +67,9 @@ class AdminTools
 			$fp = fopen($this->basePath.'/../themes/'.$this->themeName.'/views/'.$slug.'.phtml', "wb");
 			$content = '{% extends "partial/layout.phtml" %}';
 			if (isset($data['title']))
-				$content .= '{% block pagetitle %}'.$data['title'].' - {{App.name}}{% endblock %}';
+				$content .= '{% block pagetitle %}'.$data['title'].' - {{App.params.site_name}}{% endblock %}';
 			else
-				$content .= '{% block pagetitle %}{{ App.params.tag_line }} - {{App.name}}{% endblock %}';
+				$content .= '{% block pagetitle %}{{ App.params.tag_line }} - {{App.params.site_name}}{% endblock %}';
 
 			if (isset($data['meta_keyword']))
 				$content .= '{% block meta_keyword %}'.$data['meta_keyword'].'{% endblock %}';
